@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DevSecOps Learning Initializer</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header><div><span class="eyebrow">TFM · Prototipo educativo</span><h1>Incorpora DevSecOps a tu proyecto</h1><p>Importa el proyecto, entiende qué se va a añadir y descarga una copia preparada. El original no se modifica.</p></div><div class="step">1 Importar · 2 Revisar · 3 Generar</div></header>
+  <main>
+    <section class="panel upload" id="uploadPanel">
+      <h2>Importa un proyecto existente</h2>
+      <p>Actualmente validado con Spring Boot y preparado para incorporar nuevos perfiles.</p>
+      <label class="drop"><input id="project" type="file" accept=".zip"><strong>Seleccionar ZIP del proyecto</strong><span>Máximo 25 MB · no se envía a servicios externos</span></label>
+      <button id="analyze" disabled>Analizar proyecto</button><p class="error" id="error"></p>
+    </section>
+    <section id="result" hidden>
+      <div class="summary panel"><div><span class="eyebrow">Perfil detectado</span><h2 id="profile"></h2><p id="evidence"></p></div><div class="facts" id="facts"></div></div>
+      <section class="panel"><h2>Plan de incorporación</h2><p>Se indica de forma explícita qué se añade, qué se sustituye y qué control no aplica.</p><div id="changes"></div></section>
+      <section class="panel"><h2>Qué aprenderás con este flujo</h2><div class="cards" id="learning"></div></section>
+      <section class="panel generate"><div><h2>Generar una copia preparada</h2><p>El ZIP incluirá el workflow, la configuración y una guía vinculada al proyecto detectado.</p></div><label>Repositorio del workflow reutilizable<input id="repository" value="CGARCHER/devsecops-learning-initializer"></label><button id="generate">Descargar proyecto</button></section>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
+
