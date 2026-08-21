@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import json
 import tempfile
 import unittest
 import zipfile
@@ -34,13 +35,22 @@ class InitializerTests(unittest.TestCase):
         item = next(change for change in plan.changes if change.path == "Dockerfile")
         self.assertEqual("not_applicable", item.kind)
 
-    def test_generates_copy_with_workflow_and_guide(self):
+    def test_generates_copy_with_workflow_rulesets_and_guides(self):
         result = InitializerService().generate_zip(self.project())
         with zipfile.ZipFile(io.BytesIO(result)) as archive:
             names = set(archive.namelist())
-            self.assertIn(".github/workflows/devsecops.yml", names)
-            self.assertIn("docs/devsecops/guia-del-estudiante.md", names)
-            self.assertIn("pom.xml", names)
+            expected = {
+                ".github/workflows/devsecops.yml",
+                ".github/rulesets/main-protection.json",
+                ".github/rulesets/develop-protection.json",
+                "docs/devsecops/guia-del-estudiante.md",
+                "SECURITY_SETUP.md",
+                "pom.xml",
+            }
+            self.assertTrue(expected.issubset(names))
+            ruleset = json.loads(archive.read(".github/rulesets/main-protection.json"))
+            checks = next(rule for rule in ruleset["rules"] if rule["type"] == "required_status_checks")
+            self.assertEqual("security / aggregate", checks["parameters"]["required_status_checks"][0]["context"])
 
     def test_rejects_zip_slip(self):
         data = io.BytesIO()
@@ -48,6 +58,27 @@ class InitializerTests(unittest.TestCase):
             archive.writestr("../outside.txt", "bad")
         with self.assertRaisesRegex(ValueError, "ruta no segura"):
             safe_extract_zip(data.getvalue())
+
+    def test_rejects_invalid_workflow_repository(self):
+        with self.assertRaisesRegex(ValueError, "propietario/repositorio"):
+            InitializerService().generate_zip(self.project(), "invalid\nworkflow: injected")
+
+    def test_generates_optional_local_dashboard(self):
+        result = InitializerService().generate_zip(self.project(), include_dashboard=True)
+        with zipfile.ZipFile(io.BytesIO(result)) as archive:
+            names = set(archive.namelist())
+            expected = {
+                "compose.security.yml",
+                ".devsecops/dashboard.env.example",
+                ".devsecops/dashboard/Dockerfile",
+                ".devsecops/dashboard/report_api.py",
+                ".devsecops/dashboard/static/index.html",
+                ".devsecops/secrets/.gitignore",
+                "docs/devsecops/dashboard.md",
+            }
+            self.assertTrue(expected.issubset(names))
+            manifest = json.loads(archive.read(".devsecops/manifest.json"))
+            self.assertTrue(manifest["capabilities"]["localDashboard"])
 
 
 if __name__ == "__main__":

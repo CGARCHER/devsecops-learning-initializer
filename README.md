@@ -8,7 +8,7 @@ El asistente:
 - detecta el framework, el gestor de construcción y la presencia de contenedores;
 - presenta un plan antes de escribir, distinguiendo archivos añadidos, modificados y no aplicables;
 - genera un ZIP nuevo y conserva intacto el original;
-- añade un flujo de seguridad y una guía breve para el estudiante;
+- añade un flujo de seguridad, rulesets para `develop` y `main` y una guía breve para el estudiante;
 - deja las decisiones específicas del framework en perfiles ampliables.
 
 ## Probar la interfaz
@@ -45,3 +45,13 @@ python -m unittest discover -s tests -v
 
 Este repositorio forma parte de un TFM y prioriza la trazabilidad pedagógica: explica qué se incorpora, por qué se incorpora y cómo comprobarlo.
 
+## Despliegue con Docker y Dokploy
+
+El servicio puede desplegarse desde el `Dockerfile` como una aplicación única, sin base de datos ni volúmenes persistentes. Expone el puerto `8080` y el endpoint de salud `/health`.
+
+En Dokploy se configura el repositorio, el puerto interno `8080`, un dominio HTTPS y el `Dockerfile` de la raíz. La variable opcional `WORKFLOW_REPOSITORY` permite indicar el repositorio que publica el workflow reutilizable. Como los alumnos envían código fuente, el acceso debe limitarse al grupo autorizado, por ejemplo mediante Cloudflare Access.
+
+Los proyectos se conservan temporalmente durante un máximo de 30 minutos. Después de generar el ZIP de salida se eliminan del servidor. El proyecto original nunca se modifica.
+## Selección de capacidades
+
+La base DevSecOps se incorpora siempre. Desde la interfaz se puede añadir de forma opcional el panel local con remediación asistida por IA. Esta opción genera `compose.security.yml`, una configuración de ejemplo y una guía, pero no copia los Compose específicos de la aplicación ni modifica su infraestructura.
