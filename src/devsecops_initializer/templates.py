@@ -179,14 +179,21 @@ El panel descarga el último informe de GitHub Actions y permite solicitar una e
 
 Copia `.devsecops/dashboard.env.example` como `.devsecops/dashboard.env` y sustituye `propietario/repositorio` por el repositorio real.
 
-## 2. Crear los secretos locales
+## 2. Configurar el acceso a GitHub
 
-Crea los siguientes ficheros, sin añadirlos a Git:
+Crea un token *fine-grained*, limítalo al repositorio y concede los permisos **Actions: Read** y **Contents: Read**. Guarda únicamente el token en:
 
-- `.devsecops/secrets/github_token.txt`: token de GitHub con acceso de lectura al repositorio y a Actions.
-- `.devsecops/secrets/ai_api_token.txt`: Bearer Token de la API de remediación.
+`.devsecops/secrets/github_token.txt`
 
-## 3. Arrancar el panel
+## 3. Configurar el acceso a la IA
+
+La API ya está desplegada y no requiere instalar ni configurar modelos. Guarda el Bearer Token facilitado en:
+
+`.devsecops/secrets/ai_api_token.txt`
+
+No añadas ninguno de estos archivos a Git.
+
+## 4. Arrancar el panel
 
 ```bash
 docker compose -f compose.security.yml up -d --build

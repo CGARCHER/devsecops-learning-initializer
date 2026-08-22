@@ -15,9 +15,11 @@ class ProfileRegistry:
         self._profiles = profiles or [SpringBootProfile()]
 
     def resolve(self, root: Path) -> tuple[FrameworkProfile, int]:
-        ranked = sorted(((profile.detect(root), profile) for profile in self._profiles), reverse=True, key=lambda item: item[0])
-        confidence, profile = ranked[0]
+        """Devuelve el perfil que reconoce el proyecto con mayor confianza."""
+        confidence, profile = max(
+            ((profile.detect(root), profile) for profile in self._profiles),
+            key=lambda item: item[0],
+        )
         if confidence < 60:
-            raise ProfileNotDetected("No se ha detectado un framework compatible con suficiente confianza.")
+            raise ProfileNotDetected("No se ha detectado un framework compatible.")
         return profile, confidence
-

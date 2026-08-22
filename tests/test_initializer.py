@@ -2,21 +2,32 @@ from __future__ import annotations
 
 import io
 import json
+import shutil
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
 
+from devsecops_initializer.dashboard_assets.report_api import local_patch_proposal
 from devsecops_initializer.importer import safe_extract_zip
 from devsecops_initializer.service import InitializerService
 
 
-POM = """<project><parent><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-parent</artifactId><version>3.5.10</version></parent><properties><java.version>17</java.version></properties></project>"""
+POM = """<project>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.10</version>
+  </parent>
+  <properties><java.version>17</java.version></properties>
+</project>
+"""
 
 
 class InitializerTests(unittest.TestCase):
     def project(self, docker: bool = True) -> Path:
         root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, root, True)
         (root / "pom.xml").write_text(POM, encoding="utf-8")
         (root / "src/main/java").mkdir(parents=True)
         if docker:
@@ -79,6 +90,52 @@ class InitializerTests(unittest.TestCase):
             self.assertTrue(expected.issubset(names))
             manifest = json.loads(archive.read(".devsecops/manifest.json"))
             self.assertTrue(manifest["capabilities"]["localDashboard"])
+            guide = archive.read("docs/devsecops/dashboard.md").decode()
+            self.assertIn("Actions: Read", guide)
+            self.assertIn("La API ya está desplegada", guide)
+
+    def test_recognizes_an_existing_dashboard_directory(self):
+        project = self.project()
+        (project / ".devsecops/dashboard").mkdir(parents=True)
+
+        plan = InitializerService().analyze(project, include_dashboard=True)
+
+        change = next(item for item in plan.changes if item.path == ".devsecops/dashboard")
+        self.assertEqual("modify", change.kind)
+        self.assertEqual("Carpeta existente", change.before)
+
+    def test_builds_a_reviewable_patch_without_modifying_the_project(self):
+        project = self.project()
+        original = (
+            "<project>\n"
+            "  <dependencies>\n"
+            "    <dependency>\n"
+            "      <artifactId>log4j-core</artifactId>\n"
+            "      <version>2.14.1</version>\n"
+            "    </dependency>\n"
+            "  </dependencies>\n"
+            "</project>\n"
+        )
+        (project / "pom.xml").write_text(original, encoding="utf-8")
+        finding = {
+            "id": "CVE-2021-44228",
+            "category": "SCA",
+            "component": "org.apache.logging.log4j:log4j-core",
+            "version": "2.14.1",
+            "fixedVersion": "2.17.1",
+        }
+
+        result = local_patch_proposal(
+            {"patchProposal": {"available": False}},
+            finding,
+            project,
+        )
+
+        patch = result["patchProposal"]
+        self.assertTrue(patch["available"])
+        self.assertIn("-      <version>2.14.1</version>", patch["content"])
+        self.assertIn("+      <version>2.17.1</version>", patch["content"])
+        self.assertEqual(original, (project / "pom.xml").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

@@ -12,17 +12,16 @@ class FrameworkProfile(ABC):
 
     @abstractmethod
     def detect(self, root: Path) -> int:
-        """Return a confidence score between 0 and 100."""
+        """Devuelve un nivel de confianza entre 0 y 100."""
 
     @abstractmethod
     def inspect(self, root: Path, confidence: int) -> ProjectFacts:
-        """Extract normalized facts from the project."""
+        """Extrae información normalizada del proyecto."""
 
     @abstractmethod
     def plan(self, facts: ProjectFacts) -> list[Change]:
-        """Describe framework-specific changes without applying them."""
+        """Describe los cambios del perfil sin aplicarlos."""
 
     @abstractmethod
     def learning_content(self, facts: ProjectFacts) -> list[LearningCard]:
-        """Return concise educational guidance for this profile."""
-
+        """Devuelve las orientaciones necesarias para comprender los controles."""

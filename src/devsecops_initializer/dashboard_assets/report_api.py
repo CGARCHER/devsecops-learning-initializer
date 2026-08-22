@@ -286,62 +286,13 @@ def local_patch_proposal(
     except (OSError, UnicodeError):
         return result
 
-    updated = original
-    current_version = str(finding.get("version") or "").strip()
-    component = str(finding.get("component") or "")
-    suffix = source_file.name.lower()
-
-    if current_version and current_version in original:
-        updated = original.replace(current_version, fixed_version, 1)
-    elif suffix == "pom.xml":
-        artifact = component.split(":")[-1].lower()
-        if "tomcat" in artifact:
-            property_name = "tomcat.version"
-        elif component.startswith("org.springframework:"):
-            property_name = "spring-framework.version"
-        else:
-            property_name = ""
-        if property_name and f"<{property_name}>" not in original:
-            property_line = f"        <{property_name}>{fixed_version}</{property_name}>\n"
-            if "</properties>" in original:
-                updated = original.replace(
-                    "    </properties>", property_line + "    </properties>", 1
-                )
-    elif suffix in {"build.gradle", "build.gradle.kts"}:
-        # Para Gradle solo se automatiza una sustitucion existente. Declarar
-        # una restriccion nueva sin conocer el DSL y los plugins seria ambiguo.
-        updated = original
-    elif source_file.name == "Dockerfile" and re.fullmatch(r"[A-Za-z0-9+_.-]+", component):
-        lines = original.splitlines(keepends=True)
-        final_from = max(
-            (index for index, line in enumerate(lines) if line.lstrip().upper().startswith("FROM ")),
-            default=-1,
-        )
-        for index in range(final_from + 1, len(lines)):
-            line = lines[index]
-            if line.lstrip().upper().startswith("RUN ") and (
-                "apk " in original.lower() or "alpine" in original.lower()
-            ):
-                command = line.rstrip("\r\n")
-                newline = "\r\n" if line.endswith("\r\n") else "\n"
-                lines[index] = (
-                    command.replace("RUN ", f"RUN apk add --no-cache '{component}>={fixed_version}' && ", 1)
-                    + newline
-                )
-                updated = "".join(lines)
-                break
+    updated = _updated_source(original, source_file, finding, fixed_version)
 
     if updated == original:
         return result
 
     relative = source_file.relative_to(source_root.resolve()).as_posix()
-    patch = "".join(difflib.unified_diff(
-        original.splitlines(keepends=True),
-        updated.splitlines(keepends=True),
-        fromfile=relative,
-        tofile=relative,
-        n=3,
-    ))
+    patch = _unified_diff(original, updated, relative)
     enriched = dict(result)
     enriched["patchProposal"] = {
         "available": True,
@@ -350,6 +301,87 @@ def local_patch_proposal(
         "generatedFromSource": True,
     }
     return enriched
+
+
+def _updated_source(
+    original: str,
+    source_file: Path,
+    finding: dict[str, Any],
+    fixed_version: str,
+) -> str:
+    """Aplica únicamente sustituciones que pueden deducirse sin ambigüedad."""
+    current_version = str(finding.get("version") or "").strip()
+    if current_version and current_version in original:
+        return original.replace(current_version, fixed_version, 1)
+
+    component = str(finding.get("component") or "")
+    if source_file.name.lower() == "pom.xml":
+        return _updated_pom(original, component, fixed_version)
+    if source_file.name == "Dockerfile":
+        return _updated_dockerfile(original, component, fixed_version)
+
+    # En Gradle no se crea una declaración nueva porque puede utilizar Groovy
+    # o Kotlin y depender de plugins distintos.
+    return original
+
+
+def _updated_pom(original: str, component: str, fixed_version: str) -> str:
+    """Añade una propiedad conocida de Spring solo cuando no existe."""
+    artifact = component.split(":")[-1].lower()
+    if "tomcat" in artifact:
+        property_name = "tomcat.version"
+    elif component.startswith("org.springframework:"):
+        property_name = "spring-framework.version"
+    else:
+        return original
+
+    if f"<{property_name}>" in original or "</properties>" not in original:
+        return original
+
+    property_line = f"        <{property_name}>{fixed_version}</{property_name}>\n"
+    return original.replace(
+        "    </properties>", property_line + "    </properties>", 1
+    )
+
+
+def _updated_dockerfile(original: str, component: str, fixed_version: str) -> str:
+    """Propone la instalación de un paquete Alpine en la etapa final."""
+    if not re.fullmatch(r"[A-Za-z0-9+_.-]+", component):
+        return original
+    if "apk " not in original.lower() and "alpine" not in original.lower():
+        return original
+
+    lines = original.splitlines(keepends=True)
+    final_from = max(
+        (
+            index
+            for index, line in enumerate(lines)
+            if line.lstrip().upper().startswith("FROM ")
+        ),
+        default=-1,
+    )
+    for index in range(final_from + 1, len(lines)):
+        line = lines[index]
+        if line.lstrip().upper().startswith("RUN "):
+            command = line.rstrip("\r\n")
+            newline = "\r\n" if line.endswith("\r\n") else "\n"
+            package = f"'{component}>={fixed_version}'"
+            lines[index] = command.replace(
+                "RUN ", f"RUN apk add --no-cache {package} && ", 1
+            ) + newline
+            return "".join(lines)
+    return original
+
+
+def _unified_diff(original: str, updated: str, relative: str) -> str:
+    """Construye la diferencia que se mostrará para revisión manual."""
+    return "".join(difflib.unified_diff(
+        original.splitlines(keepends=True),
+        updated.splitlines(keepends=True),
+        fromfile=relative,
+        tofile=relative,
+        n=3,
+    ))
 
 
 def remediation_markdown(result: dict[str, Any]) -> str:
