@@ -68,6 +68,7 @@ class InitializerTests(unittest.TestCase):
             workflow = archive.read(".github/workflows/devsecops.yml").decode()
             self.assertIn(f"Paquete DevSecOps: {DEVSECOPS_VERSION}", workflow)
             self.assertIn(".devsecops/engine/scripts/normalize_findings.py", workflow)
+            self.assertIn("Motivo del análisis de contenedor", workflow)
             self.assertNotIn("uses: CGARCHER/devsecops-learning-initializer", workflow)
             manifest = json.loads(archive.read(".devsecops/manifest.json"))
             self.assertEqual(DEVSECOPS_VERSION, manifest["devsecopsVersion"])

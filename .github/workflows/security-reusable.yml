@@ -268,7 +268,7 @@ jobs:
         if: steps.profile.outputs.container_scan != 'true'
         run: |
           printf '{"SchemaVersion": 2, "Results": []}\n' > reports/container/trivy.json
-          printf '{"status":"NOT_APPLICABLE","reason":"No se ha encontrado un Dockerfile unico."}\n' \
+          printf '{"status":"NOT_APPLICABLE","reason":"No se ha encontrado un Dockerfile en el proyecto."}\n' \
             > reports/container/status.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
@@ -341,12 +341,18 @@ jobs:
           unique_counts = summary.get("uniqueBySeverity", {})
           findings = findings_data.get("findings", [])
           status = decision_data.get("status", "UNKNOWN")
-          analyzer_results = {
+          job_results = {
               "SAST": os.environ.get("SAST_RESULT", "unknown"),
               "SCA": os.environ.get("SCA_RESULT", "unknown"),
               "Container": os.environ.get("CONTAINER_RESULT", "unknown"),
           }
-          technical_failure = any(result != "success" for result in analyzer_results.values())
+          analyzers = analyzer_data.get("analyzers", {})
+          analyzer_results = {
+              "SAST": analyzers.get("sast", {}).get("status", job_results["SAST"].upper()),
+              "SCA": analyzers.get("sca", {}).get("status", job_results["SCA"].upper()),
+              "Container": analyzers.get("container", {}).get("status", job_results["Container"].upper()),
+          }
+          technical_failure = any(result != "success" for result in job_results.values())
           if technical_failure or analyzer_data.get("status") != "SUCCESS":
               status = "ANALYSIS_ERROR"
           status_icon = {
@@ -388,6 +394,13 @@ jobs:
               "## Detalle de hallazgos",
               "",
           ])
+
+          container_analyzer = analyzers.get("container", {})
+          if analyzer_results["Container"] == "NOT_APPLICABLE":
+              lines.extend([
+                  f"**Motivo del análisis de contenedor:** {cell(container_analyzer.get('message'))}",
+                  "",
+              ])
 
           analysis_errors = analyzer_data.get("errors", [])
           if analysis_errors:

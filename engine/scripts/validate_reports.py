@@ -57,7 +57,7 @@ def build_status(
                 "name": display_name,
                 "status": "NOT_APPLICABLE",
                 "report": path.as_posix(),
-                "message": "El proyecto no contiene un Dockerfile unico.",
+                "message": "No se ha encontrado un Dockerfile en el proyecto.",
             }
             continue
         status, message = validate_json_report(path, required_key)
