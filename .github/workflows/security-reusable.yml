@@ -1,8 +1,6 @@
 name: Análisis DevSecOps reutilizable
 
 on:
-  push:
-  pull_request:
   workflow_call:
     inputs:
       project_path:
