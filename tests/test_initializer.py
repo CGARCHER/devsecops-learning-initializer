@@ -83,7 +83,7 @@ class InitializerTests(unittest.TestCase):
         project = self.project()
         manifest = {
             "generatedBy": "devsecops-learning-initializer",
-            "devsecopsVersion": "0.9.0",
+            "devsecopsVersion": "0.8.0",
         }
         (project / ".devsecops").mkdir()
         (project / ".devsecops/manifest.json").write_text(
@@ -95,7 +95,7 @@ class InitializerTests(unittest.TestCase):
 
         self.assertIsNotNone(version)
         self.assertEqual("update_available", version.status)
-        self.assertEqual("0.9.0", version.installed)
+        self.assertEqual("0.8.0", version.installed)
 
     def test_does_not_downgrade_a_newer_package(self):
         project = self.project()
