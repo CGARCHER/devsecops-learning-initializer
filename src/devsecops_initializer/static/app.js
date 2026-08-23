@@ -109,6 +109,9 @@ dashboardCheckbox.addEventListener('change', () => {
   showHelp(concept);
 });
 
+// Marcar la opción no debe cerrar accidentalmente su apartado desplegable.
+dashboardCheckbox.addEventListener('click', event => event.stopPropagation());
+
 showHelp('workflow');
 
 fileInput.addEventListener('change', updateAnalyzeButton);
@@ -195,10 +198,23 @@ function renderPlan(data) {
   document.querySelector('#profile').textContent = data.facts.profile_name;
   document.querySelector('#evidence').textContent = `Evidencias: ${data.facts.evidence.join(', ')}`;
 
+  renderVersion(data.version);
   renderFacts(data.facts);
   renderChanges(data.changes);
   renderLearning(data.learning);
   document.querySelector('#result').scrollIntoView({behavior: 'smooth'});
+}
+
+function renderVersion(version) {
+  const element = document.querySelector('#version-status');
+  const messages = {
+    not_installed: `Se incorporará el paquete DevSecOps ${version.current}.`,
+    current: `El proyecto ya utiliza DevSecOps ${version.current}.`,
+    update_available: `Actualización disponible: ${version.installed} → ${version.current}. La copia incluirá la versión nueva.`,
+    newer: `El proyecto utiliza DevSecOps ${version.installed}, una versión más reciente que este inicializador.`
+  };
+  element.textContent = messages[version.status] || `Versión DevSecOps: ${version.current}.`;
+  element.className = `version-status ${version.status}`;
 }
 
 function renderFacts(facts) {

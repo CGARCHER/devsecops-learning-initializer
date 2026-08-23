@@ -11,6 +11,7 @@ from pathlib import Path
 from devsecops_initializer.dashboard_assets.report_api import local_patch_proposal
 from devsecops_initializer.importer import safe_extract_zip
 from devsecops_initializer.service import InitializerService
+from devsecops_initializer.versioning import DEVSECOPS_VERSION
 
 
 POM = """<project>
@@ -54,6 +55,8 @@ class InitializerTests(unittest.TestCase):
                 ".github/workflows/devsecops.yml",
                 ".github/rulesets/main-protection.json",
                 ".github/rulesets/develop-protection.json",
+                ".devsecops/engine/scripts/normalize_findings.py",
+                ".devsecops/engine/security/semgrep.yml",
                 "docs/devsecops/guia-del-estudiante.md",
                 "SECURITY_SETUP.md",
                 "pom.xml",
@@ -62,6 +65,12 @@ class InitializerTests(unittest.TestCase):
             ruleset = json.loads(archive.read(".github/rulesets/main-protection.json"))
             checks = next(rule for rule in ruleset["rules"] if rule["type"] == "required_status_checks")
             self.assertEqual("security / aggregate", checks["parameters"]["required_status_checks"][0]["context"])
+            workflow = archive.read(".github/workflows/devsecops.yml").decode()
+            self.assertIn(f"Paquete DevSecOps: {DEVSECOPS_VERSION}", workflow)
+            self.assertIn(".devsecops/engine/scripts/normalize_findings.py", workflow)
+            self.assertNotIn("uses: CGARCHER/devsecops-learning-initializer", workflow)
+            manifest = json.loads(archive.read(".devsecops/manifest.json"))
+            self.assertEqual(DEVSECOPS_VERSION, manifest["devsecopsVersion"])
 
     def test_rejects_zip_slip(self):
         data = io.BytesIO()
@@ -70,9 +79,34 @@ class InitializerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "ruta no segura"):
             safe_extract_zip(data.getvalue())
 
-    def test_rejects_invalid_workflow_repository(self):
-        with self.assertRaisesRegex(ValueError, "propietario/repositorio"):
-            InitializerService().generate_zip(self.project(), "invalid\nworkflow: injected")
+    def test_detects_an_available_package_update(self):
+        project = self.project()
+        manifest = {
+            "generatedBy": "devsecops-learning-initializer",
+            "devsecopsVersion": "0.9.0",
+        }
+        (project / ".devsecops").mkdir()
+        (project / ".devsecops/manifest.json").write_text(
+            json.dumps(manifest),
+            encoding="utf-8",
+        )
+
+        version = InitializerService().analyze(project).version
+
+        self.assertIsNotNone(version)
+        self.assertEqual("update_available", version.status)
+        self.assertEqual("0.9.0", version.installed)
+
+    def test_does_not_downgrade_a_newer_package(self):
+        project = self.project()
+        (project / ".devsecops").mkdir()
+        (project / ".devsecops/manifest.json").write_text(
+            json.dumps({"devsecopsVersion": "9.0.0"}),
+            encoding="utf-8",
+        )
+
+        with self.assertRaisesRegex(ValueError, "versión DevSecOps más reciente"):
+            InitializerService().generate_zip(project)
 
     def test_generates_optional_local_dashboard(self):
         result = InitializerService().generate_zip(self.project(), include_dashboard=True)

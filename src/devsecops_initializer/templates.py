@@ -1,28 +1,10 @@
 from __future__ import annotations
 
 import json
+from datetime import date
 
 from .models import ProjectFacts
-
-
-WORKFLOW = """name: Seguridad DevSecOps
-
-on:
-  push:
-    branches: [develop, main, 'feature/**']
-  pull_request:
-  workflow_dispatch:
-
-jobs:
-  security:
-    uses: {repository}/.github/workflows/security-reusable.yml@main
-    with:
-      project_path: auto
-      dockerfile: auto
-      engine_repository: '{repository}'
-      engine_ref: main
-    secrets: inherit
-"""
+from .versioning import DEVSECOPS_VERSION
 
 
 def ruleset_text(branch: str) -> str:
@@ -73,6 +55,8 @@ Sube los archivos generados a GitHub. Si la rama `develop` todavía no existe, c
 
 Abre la pestaña **Actions** y comprueba que el workflow `Seguridad DevSecOps` termina correctamente. Esta primera ejecución registra el check `security / aggregate` que utilizarán los rulesets.
 
+El workflow y su núcleo se encuentran dentro del propio proyecto. GitHub Actions no necesita un token personal ni acceder al repositorio del inicializador.
+
 ## 3. Importar los rulesets
 
 Accede a `Settings → Rules → Rulesets`, selecciona **New ruleset** y después **Import a ruleset**. Importa por separado:
@@ -90,10 +74,11 @@ Los rulesets impiden eliminar las ramas protegidas, evitan actualizaciones que n
 """
 
 
-def config_text(facts: ProjectFacts, repository: str, include_dashboard: bool = False) -> str:
-    """Genera la configuración común que utilizará el workflow reutilizable."""
+def config_text(facts: ProjectFacts, include_dashboard: bool = False) -> str:
+    """Genera la configuración común del paquete DevSecOps autónomo."""
     dockerfile = facts.dockerfile or "auto"
     return f"""schemaVersion: '1.0'
+devsecopsVersion: {DEVSECOPS_VERSION}
 profile:
   id: {facts.profile_id}
 project:
@@ -108,7 +93,6 @@ analysis:
 policy:
   blockOn: [CRITICAL]
   requireReviewOn: [HIGH]
-workflowRepository: {repository}
 dashboard:
   enabled: {str(include_dashboard).lower()}
 """
@@ -222,6 +206,8 @@ def student_guide(facts: ProjectFacts) -> str:
     container = "se construye y analiza la imagen" if facts.dockerfile else "se registra como no aplicable porque no hay Dockerfile"
     return f"""# Guía DevSecOps del proyecto
 
+Paquete DevSecOps instalado: **{DEVSECOPS_VERSION}**.
+
 ## Qué se ha detectado
 
 - Perfil: {facts.profile_name}
@@ -252,6 +238,8 @@ def manifest(facts: ProjectFacts, include_dashboard: bool = False) -> str:
     return json.dumps({
         "schemaVersion": "1.0",
         "generatedBy": "devsecops-learning-initializer",
+        "devsecopsVersion": DEVSECOPS_VERSION,
+        "generatedAt": date.today().isoformat(),
         "profile": facts.public(),
         "capabilities": {"securityPipeline": True, "localDashboard": include_dashboard},
     }, ensure_ascii=False, indent=2)

@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from .service import DEFAULT_WORKFLOW_REPOSITORY, InitializerService
+from .service import InitializerService
 
 
 def parser() -> argparse.ArgumentParser:
@@ -28,7 +28,6 @@ def parser() -> argparse.ArgumentParser:
     )
     generate.add_argument("project", type=Path)
     generate.add_argument("output", type=Path)
-    generate.add_argument("--workflow-repository", default=DEFAULT_WORKFLOW_REPOSITORY)
     generate.add_argument(
         "--with-dashboard",
         action="store_true",
@@ -47,7 +46,6 @@ def main(argv: list[str] | None = None) -> int:
 
     generated_zip = service.generate_zip(
         args.project,
-        args.workflow_repository,
         args.with_dashboard,
     )
     args.output.write_bytes(generated_zip)

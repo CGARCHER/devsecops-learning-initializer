@@ -4,6 +4,8 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Literal
 
+from .versioning import VersionStatus
+
 
 ChangeKind = Literal["add", "modify", "not_applicable"]
 
@@ -49,11 +51,14 @@ class AnalysisPlan:
     facts: ProjectFacts
     changes: list[Change] = field(default_factory=list)
     learning: list[LearningCard] = field(default_factory=list)
+    version: VersionStatus | None = None
 
     def public(self) -> dict:
-        return {
+        result = {
             "facts": self.facts.public(),
             "changes": [asdict(item) for item in self.changes],
             "learning": [asdict(item) for item in self.learning],
         }
-
+        if self.version:
+            result["version"] = self.version.public()
+        return result

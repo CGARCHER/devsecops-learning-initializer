@@ -14,7 +14,8 @@ from threading import Lock
 from urllib.parse import parse_qs, urlparse
 
 from .importer import MAX_ZIP_BYTES, safe_extract_zip
-from .service import DEFAULT_WORKFLOW_REPOSITORY, InitializerService
+from .service import InitializerService
+from .versioning import DEVSECOPS_VERSION
 
 
 SESSION_TTL_SECONDS = 30 * 60
@@ -85,7 +86,10 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         route = urlparse(self.path).path
         if route == "/health":
-            self._json(HTTPStatus.OK, {"status": "UP"})
+            self._json(
+                HTTPStatus.OK,
+                {"status": "UP", "devsecopsVersion": DEVSECOPS_VERSION},
+            )
             return
 
         asset = "index.html" if route == "/" else route.removeprefix("/")
@@ -143,7 +147,6 @@ class Handler(BaseHTTPRequestHandler):
         try:
             result = self.service.generate_zip(
                 session.root,
-                DEFAULT_WORKFLOW_REPOSITORY,
                 session.include_dashboard,
             )
         finally:

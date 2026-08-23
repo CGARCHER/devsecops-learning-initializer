@@ -36,6 +36,11 @@ main { padding-top: 28px; padding-bottom: 55px; }
 .selection-row input { margin-top: 5px; }
 .selection-row strong, .selection-row small { display: block; }
 .selection-row small { margin-top: 2px; color: var(--muted); }
+.control-group + .control-group { margin-top: 18px; }
+.control-group > summary { position: relative; padding-right: 45px; list-style: none; cursor: pointer; }
+.control-group > summary::-webkit-details-marker { display: none; }
+.control-group > summary::after { content: "▼"; position: absolute; top: 50%; right: 16px; color: var(--green); transform: translateY(-50%); }
+.control-group:not([open]) > summary::after { content: "▶"; }
 
 .learning-layout { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(280px, 1fr); gap: 24px; margin: 17px 0 28px; align-items: start; }
 .controls-column { min-width: 0; }
@@ -69,7 +74,7 @@ main { padding-top: 28px; padding-bottom: 55px; }
 .help-panel dd { margin: 3px 0 0; color: var(--muted); }
 .help-panel code { color: var(--dark-green); overflow-wrap: anywhere; }
 
-.optional-selection { margin-top: 18px; background: #f7f8f8; border-color: var(--line); cursor: pointer; }
+.optional-selection { background: #f7f8f8; border-color: var(--line); cursor: pointer; }
 .optional-selection.selected { background: var(--soft-green); border-color: #b9cec7; }
 .optional-controls { padding: 13px 0 4px; }
 .optional-controls > p { margin: 0 0 9px; color: var(--muted); font-size: 14px; }
@@ -94,6 +99,8 @@ button:not(.help-link):not(.control-row):disabled { opacity: .45; cursor: not-al
 .section-label { margin: 0 0 3px !important; color: var(--green) !important; font-weight: bold; }
 .summary { display: flex; justify-content: space-between; gap: 28px; align-items: center; }
 .summary p { margin-bottom: 0; }
+.version-status { margin-top: 8px; font-size: 14px; color: var(--muted); }
+.version-status.update_available, .version-status.newer { color: #8a5a00; font-weight: 600; }
 .facts { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); }
 .fact { min-width: 110px; padding: 9px 12px; border-right: 1px solid var(--line); }
 .fact:last-child { border-right: 0; }

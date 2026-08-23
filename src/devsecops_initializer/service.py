@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import io
 import os
-import re
 import shutil
 import tempfile
 import zipfile
@@ -12,7 +11,6 @@ from pathlib import Path
 from .models import AnalysisPlan, Change
 from .registry import ProfileRegistry
 from .templates import (
-    WORKFLOW,
     config_text,
     dashboard_compose,
     dashboard_environment,
@@ -24,17 +22,22 @@ from .templates import (
     security_setup,
     student_guide,
 )
+from .versioning import DEVSECOPS_VERSION, inspect_version
 
 
-DEFAULT_WORKFLOW_REPOSITORY = os.getenv("WORKFLOW_REPOSITORY", "CGARCHER/devsecops-learning-initializer")
-REPOSITORY_PATTERN = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+ENGINE_DIRECTORIES = ("profiles", "scripts", "security")
 
 # path, título y explicación que verá el alumno antes de generar el ZIP.
 COMMON_PLAN_ITEMS = (
     (
         ".github/workflows/devsecops.yml",
-        "Flujo DevSecOps reutilizable",
-        "Ejecuta SAST, SCA y análisis de contenedores por rama.",
+        "Workflow DevSecOps autónomo",
+        "Ejecuta SAST, SCA y análisis de contenedores sin depender de otro repositorio.",
+    ),
+    (
+        ".devsecops/engine",
+        "Núcleo de análisis",
+        "Incluye los perfiles, reglas y scripts utilizados por el workflow.",
     ),
     (
         ".github/rulesets/main-protection.json",
@@ -114,7 +117,12 @@ class InitializerService:
             changes.extend(self._changes_for(root, DASHBOARD_PLAN_ITEMS))
 
         changes.extend(profile.plan(facts))
-        return AnalysisPlan(facts, changes, profile.learning_content(facts))
+        return AnalysisPlan(
+            facts,
+            changes,
+            profile.learning_content(facts),
+            inspect_version(root),
+        )
 
     @classmethod
     def _changes_for(
@@ -145,17 +153,20 @@ class InitializerService:
             )
         return Change("add", relative, title, reason, line=1, after="Archivo nuevo")
 
-    def generate_zip(self, root: Path, repository: str = DEFAULT_WORKFLOW_REPOSITORY, include_dashboard: bool = False) -> bytes:
+    def generate_zip(self, root: Path, include_dashboard: bool = False) -> bytes:
         """Genera una copia ZIP y mantiene intacto el proyecto original."""
-        if not REPOSITORY_PATTERN.fullmatch(repository):
-            raise ValueError("El repositorio debe tener el formato propietario/repositorio.")
         plan = self.analyze(root, include_dashboard)
+        if plan.version and plan.version.status == "newer":
+            raise ValueError(
+                "El proyecto utiliza una versión DevSecOps más reciente que este inicializador."
+            )
         temporary = Path(tempfile.mkdtemp(prefix="devsecops-output-"))
         workspace = temporary / "project"
         try:
             # Se trabaja sobre una copia temporal para no sobrescribir archivos del alumno.
             shutil.copytree(root, workspace, ignore=shutil.ignore_patterns(*IGNORED_PROJECT_ITEMS))
-            generated = self._generated_files(plan, repository, include_dashboard)
+            generated = self._generated_files(plan, include_dashboard)
+            generated.update(self._engine_files())
             if include_dashboard:
                 generated.update(self._dashboard_files())
             self._write_files(workspace, generated)
@@ -163,23 +174,60 @@ class InitializerService:
         finally:
             shutil.rmtree(temporary, ignore_errors=True)
 
-    @staticmethod
+    @classmethod
     def _generated_files(
+        cls,
         plan: AnalysisPlan,
-        repository: str,
         include_dashboard: bool,
     ) -> dict[str, str]:
         """Genera el contenido común a cualquier proyecto compatible."""
         facts = plan.facts
         return {
-            ".github/workflows/devsecops.yml": WORKFLOW.format(repository=repository, profile=facts.profile_id),
+            ".github/workflows/devsecops.yml": cls._workflow_text(),
             ".github/rulesets/main-protection.json": ruleset_text("main"),
             ".github/rulesets/develop-protection.json": ruleset_text("develop"),
-            ".devsecops/config.yml": config_text(facts, repository, include_dashboard),
+            ".devsecops/config.yml": config_text(facts, include_dashboard),
             "docs/devsecops/guia-del-estudiante.md": student_guide(facts),
             "SECURITY_SETUP.md": security_setup(),
             ".devsecops/manifest.json": manifest(facts, include_dashboard),
         }
+
+    @staticmethod
+    def _engine_source() -> Path:
+        """Localiza el núcleo tanto en desarrollo como dentro del contenedor."""
+        configured = os.getenv("DEVSECOPS_ENGINE_DIR")
+        candidates = [
+            Path(configured) if configured else None,
+            Path(__file__).resolve().parents[2] / "engine",
+            Path.cwd() / "engine",
+        ]
+        for candidate in candidates:
+            if candidate and candidate.is_dir():
+                return candidate
+        raise OSError("No se ha encontrado el núcleo DevSecOps del inicializador.")
+
+    @classmethod
+    def _workflow_text(cls) -> str:
+        """Carga el workflow autónomo y fija la versión incorporada."""
+        template = cls._engine_source() / "workflows/devsecops.yml"
+        return template.read_text(encoding="utf-8").replace(
+            "__DEVSECOPS_VERSION__",
+            DEVSECOPS_VERSION,
+        )
+
+    @classmethod
+    def _engine_files(cls) -> dict[str, str]:
+        """Copia al proyecto únicamente el núcleo que utiliza el workflow."""
+        source = cls._engine_source()
+        generated: dict[str, str] = {}
+        for directory in ENGINE_DIRECTORIES:
+            for path in sorted((source / directory).rglob("*")):
+                if path.is_file() and "__pycache__" not in path.parts:
+                    relative = path.relative_to(source).as_posix()
+                    generated[f".devsecops/engine/{relative}"] = path.read_text(
+                        encoding="utf-8"
+                    )
+        return generated
 
     @staticmethod
     def _write_files(workspace: Path, generated: dict[str, str]) -> None:
@@ -218,5 +266,7 @@ class InitializerService:
             "static/app.js",
             "static/styles.css",
         ):
-            generated[f".devsecops/dashboard/{relative}"] = assets.joinpath(relative).read_text(encoding="utf-8")
+            generated[f".devsecops/dashboard/{relative}"] = assets.joinpath(
+                relative
+            ).read_text(encoding="utf-8")
         return generated

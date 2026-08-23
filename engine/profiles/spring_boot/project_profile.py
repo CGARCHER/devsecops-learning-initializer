@@ -14,6 +14,7 @@ from typing import Any
 IGNORED_DIRECTORIES = {
     ".git",
     ".gradle",
+    ".devsecops",
     ".security-engine",
     ".idea",
     ".mvn",

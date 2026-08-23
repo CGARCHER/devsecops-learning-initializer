@@ -37,66 +37,70 @@
 
       <div class="learning-layout">
         <div class="controls-column">
-          <label class="selection-row required-selection">
-            <input type="checkbox" checked disabled>
-            <span><strong>Configuración DevSecOps básica</strong><small>Se incluye en todos los proyectos generados.</small></span>
-          </label>
+          <details class="control-group" open>
+            <summary class="selection-row required-selection">
+              <input type="checkbox" checked disabled aria-label="Configuración DevSecOps básica incluida">
+              <span><strong>Configuración DevSecOps básica</strong><small>Se incluye en todos los proyectos generados.</small></span>
+            </summary>
 
-          <div class="control-table" aria-label="Controles DevSecOps básicos">
-            <div class="control-header"><span>Control</span><span>Finalidad</span><span></span></div>
-            <div class="control-row">
-              <span><strong>Integración continua</strong><small>GitHub Actions</small></span>
-              <span>Ejecutar automáticamente el pipeline.</span><button type="button" class="help-link help-action" data-help="workflow">Ver ayuda</button>
+            <div class="control-table" aria-label="Controles DevSecOps básicos">
+              <div class="control-header"><span>Control</span><span>Finalidad</span><span></span></div>
+              <div class="control-row">
+                <span><strong>Integración continua</strong><small>GitHub Actions</small></span>
+                <span>Ejecutar automáticamente el pipeline.</span><button type="button" class="help-link help-action" data-help="workflow">Ver ayuda</button>
+              </div>
+              <div class="control-row">
+                <span><strong>Análisis SAST</strong><small>Semgrep</small></span>
+                <span>Revisar patrones inseguros en el código.</span><button type="button" class="help-link help-action" data-help="sast">Ver ayuda</button>
+              </div>
+              <div class="control-row">
+                <span><strong>Análisis SCA</strong><small>Trivy</small></span>
+                <span>Detectar dependencias vulnerables.</span><button type="button" class="help-link help-action" data-help="sca">Ver ayuda</button>
+              </div>
+              <div class="control-row">
+                <span><strong>Imagen de contenedor</strong><small>Trivy</small></span>
+                <span>Analizar la imagen definida por el Dockerfile.</span><button type="button" class="help-link help-action" data-help="container">Ver ayuda</button>
+              </div>
+              <div class="control-row">
+                <span><strong>Política de seguridad</strong><small>Reglas del pipeline</small></span>
+                <span>Decidir cuándo debe bloquearse el proceso.</span><button type="button" class="help-link help-action" data-help="policy">Ver ayuda</button>
+              </div>
+              <div class="control-row">
+                <span><strong>Protección de ramas</strong><small>GitHub Rulesets</small></span>
+                <span>Preparar la protección de develop y main.</span><button type="button" class="help-link help-action" data-help="rulesets">Ver ayuda</button>
+              </div>
             </div>
-            <div class="control-row">
-              <span><strong>Análisis SAST</strong><small>Semgrep</small></span>
-              <span>Revisar patrones inseguros en el código.</span><button type="button" class="help-link help-action" data-help="sast">Ver ayuda</button>
-            </div>
-            <div class="control-row">
-              <span><strong>Análisis SCA</strong><small>Trivy</small></span>
-              <span>Detectar dependencias vulnerables.</span><button type="button" class="help-link help-action" data-help="sca">Ver ayuda</button>
-            </div>
-            <div class="control-row">
-              <span><strong>Imagen de contenedor</strong><small>Trivy</small></span>
-              <span>Analizar la imagen definida por el Dockerfile.</span><button type="button" class="help-link help-action" data-help="container">Ver ayuda</button>
-            </div>
-            <div class="control-row">
-              <span><strong>Política de seguridad</strong><small>Reglas del pipeline</small></span>
-              <span>Decidir cuándo debe bloquearse el proceso.</span><button type="button" class="help-link help-action" data-help="policy">Ver ayuda</button>
-            </div>
-            <div class="control-row">
-              <span><strong>Protección de ramas</strong><small>GitHub Rulesets</small></span>
-              <span>Preparar la protección de develop y main.</span><button type="button" class="help-link help-action" data-help="rulesets">Ver ayuda</button>
-            </div>
-          </div>
+          </details>
 
-          <label class="selection-row optional-selection">
-            <input id="include-dashboard" type="checkbox">
-            <span><strong>Panel local y remediación con IA</strong><small>Opcional. Solo se ejecuta en el equipo del alumno.</small></span>
-          </label>
+          <details class="control-group" open>
+            <summary class="selection-row optional-selection">
+              <input id="include-dashboard" type="checkbox" aria-label="Incluir panel local y remediación con IA">
+              <span><strong>Panel local y remediación con IA</strong><small>Opcional. Solo se ejecuta en el equipo del alumno.</small></span>
+            </summary>
 
-          <div class="optional-controls" id="optional-controls">
-            <p>Esta opción añade los siguientes componentes:</p>
-            <div class="control-table" aria-label="Componentes opcionales del dashboard">
-              <div class="control-header"><span>Componente</span><span>Finalidad</span><span></span></div>
-              <div class="control-row">
-                <span><strong>Panel de seguridad</strong><small>Dashboard local</small></span>
-                <span>Presentar los informes de forma visual.</span><button type="button" class="help-link help-action" data-help="dashboard">Ver ayuda</button>
-              </div>
-              <div class="control-row">
-                <span><strong>Remediación asistida</strong><small>API de IA</small></span>
-                <span>Explicar y proponer cambios revisables.</span><button type="button" class="help-link help-action" data-help="ai">Ver ayuda</button>
-              </div>
-              <div class="control-row">
-                <span><strong>Entorno local</strong><small>Docker Compose</small></span>
-                <span>Arrancar el panel con un comando.</span><button type="button" class="help-link help-action" data-help="compose">Ver ayuda</button>
-              </div>
-              <div class="control-row">
-                <span><strong>Hardening local</strong><small>Docker</small></span>
-                <span>Reducir los permisos del contenedor.</span><button type="button" class="help-link help-action" data-help="hardening">Ver ayuda</button>
+            <div class="optional-controls" id="optional-controls">
+              <p>Esta opción añade los siguientes componentes:</p>
+              <div class="control-table" aria-label="Componentes opcionales del dashboard">
+                <div class="control-header"><span>Componente</span><span>Finalidad</span><span></span></div>
+                <div class="control-row">
+                  <span><strong>Panel de seguridad</strong><small>Dashboard local</small></span>
+                  <span>Presentar los informes de forma visual.</span><button type="button" class="help-link help-action" data-help="dashboard">Ver ayuda</button>
+                </div>
+                <div class="control-row">
+                  <span><strong>Remediación asistida</strong><small>API de IA</small></span>
+                  <span>Explicar y proponer cambios revisables.</span><button type="button" class="help-link help-action" data-help="ai">Ver ayuda</button>
+                </div>
+                <div class="control-row">
+                  <span><strong>Entorno local</strong><small>Docker Compose</small></span>
+                  <span>Arrancar el panel con un comando.</span><button type="button" class="help-link help-action" data-help="compose">Ver ayuda</button>
+                </div>
+                <div class="control-row">
+                  <span><strong>Hardening local</strong><small>Docker</small></span>
+                  <span>Reducir los permisos del contenedor.</span><button type="button" class="help-link help-action" data-help="hardening">Ver ayuda</button>
+                </div>
               </div>
             </div>
-          </div>
+          </details>
         </div>
 
         <aside class="help-panel" id="concept-help" aria-live="polite">
@@ -130,6 +134,7 @@
           <p class="section-label">Perfil detectado</p>
           <h2 id="profile"></h2>
           <p id="evidence"></p>
+          <p id="version-status" class="version-status"></p>
         </div>
         <div class="facts" id="facts"></div>
       </section>

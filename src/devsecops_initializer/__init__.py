@@ -1,3 +1,6 @@
 """Inicializador DevSecOps para proyectos existentes."""
 
-__version__ = "1.0.0"
+from .versioning import DEVSECOPS_VERSION
+
+
+__version__ = DEVSECOPS_VERSION

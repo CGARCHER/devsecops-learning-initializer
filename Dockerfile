@@ -7,6 +7,7 @@ WORKDIR /app
 
 COPY pyproject.toml README.md ./
 COPY src ./src
+COPY engine ./engine
 
 # Se instala la aplicación y se crea un usuario sin privilegios.
 RUN pip install --no-cache-dir . \

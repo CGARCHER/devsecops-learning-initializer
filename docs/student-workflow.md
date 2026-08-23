@@ -10,7 +10,7 @@ El ZIP se analiza localmente. Antes de descargar el resultado se revisa el perfi
 
 ## 3. Generar y comparar
 
-El asistente genera una copia. Se comparan los dos árboles y se revisan de forma especial `.github/workflows/devsecops.yml`, `.devsecops/config.yml` y la guía generada. No se sustituye el original sin revisar.
+El asistente genera una copia. Se comparan los dos árboles y se revisan de forma especial `.github/workflows/devsecops.yml`, `.devsecops/config.yml`, `.devsecops/manifest.json` y la guía generada. El manifiesto permite conocer la versión del paquete incorporado. No se sustituye el original sin revisar.
 
 ## 4. Ejecutar
 
@@ -23,4 +23,3 @@ El alumno selecciona un hallazgo, consulta la evidencia y prepara una correcció
 ## 6. Promover
 
 El recorrido recomendado es `feature/* → develop → main → producción`. La promoción utiliza el mismo SHA que ha superado la política. Un estado `BLOCKED`, `REVIEW_REQUIRED` o `ANALYSIS_ERROR` no se despliega.
-
