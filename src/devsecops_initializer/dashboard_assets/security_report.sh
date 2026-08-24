@@ -15,30 +15,39 @@ if [ -z "${GH_TOKEN:-}" ]; then
   exit 1
 fi
 
+workflow_path=".github/workflows/$workflow"
+
 if [ -n "$branch" ]; then
   echo "Consultando la ultima ejecucion terminada de $workflow en la rama $branch..."
-  run_json="$(
-    gh run list \
-      --repo "$repository" \
-      --workflow "$workflow" \
-      --branch "$branch" \
-      --status completed \
-      --limit 1 \
-      --json databaseId,headSha,conclusion,createdAt,url \
-      --jq '.[0]'
+  runs_json="$(
+    gh api --method GET "repos/$repository/actions/runs" \
+      -f branch="$branch" \
+      -f status=completed \
+      -f per_page=100
   )"
 else
   echo "Consultando la ultima ejecucion terminada de $workflow..."
-  run_json="$(
-    gh run list \
-      --repo "$repository" \
-      --workflow "$workflow" \
-      --status completed \
-      --limit 1 \
-      --json databaseId,headSha,conclusion,createdAt,url \
-      --jq '.[0]'
+  runs_json="$(
+    gh api --method GET "repos/$repository/actions/runs" \
+      -f status=completed \
+      -f per_page=100
   )"
 fi
+
+# Se filtra después por la ruta del workflow para no depender de la rama
+# predeterminada del repositorio.
+run_json="$(
+  printf '%s' "$runs_json" | jq --arg workflow_path "$workflow_path" '
+    [.workflow_runs[] | select(.path == $workflow_path)][0]
+    | if . == null then null else {
+        databaseId: .id,
+        headSha: .head_sha,
+        conclusion: .conclusion,
+        createdAt: .created_at,
+        url: .html_url
+      } end
+  '
+)"
 
 if [ -z "$run_json" ] || [ "$run_json" = "null" ]; then
   echo "ERROR: no se ha encontrado ninguna ejecucion terminada." >&2
