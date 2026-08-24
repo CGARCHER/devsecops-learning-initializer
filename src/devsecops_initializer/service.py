@@ -260,7 +260,9 @@ class InitializerService:
             "static/app.js",
             "static/styles.css",
         ):
-            generated[f".devsecops/dashboard/{relative}"] = assets.joinpath(
-                relative
-            ).read_text(encoding="utf-8")
+            content = assets.joinpath(relative).read_text(encoding="utf-8")
+            generated[f".devsecops/dashboard/{relative}"] = content.replace(
+                "__DEVSECOPS_VERSION__",
+                DEVSECOPS_VERSION,
+            )
         return generated

@@ -31,6 +31,17 @@ CONTENT_SECURITY_POLICY = (
 )
 
 
+def static_asset(asset: str) -> bytes:
+    """Carga un recurso web y muestra la versión actual en el HTML."""
+    data = files("devsecops_initializer.static").joinpath(asset).read_bytes()
+    if asset == "index.html":
+        data = data.replace(
+            b"__DEVSECOPS_VERSION__",
+            DEVSECOPS_VERSION.encode("utf-8"),
+        )
+    return data
+
+
 @dataclass(frozen=True)
 class UploadSession:
     root: Path
@@ -97,7 +108,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error(HTTPStatus.NOT_FOUND)
             return
 
-        data = files("devsecops_initializer.static").joinpath(asset).read_bytes()
+        data = static_asset(asset)
         self._send(HTTPStatus.OK, data, STATIC_CONTENT_TYPES[asset])
 
     def do_POST(self) -> None:

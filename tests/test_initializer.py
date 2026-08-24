@@ -12,6 +12,7 @@ from devsecops_initializer.dashboard_assets.report_api import local_patch_propos
 from devsecops_initializer.importer import safe_extract_zip
 from devsecops_initializer.service import InitializerService
 from devsecops_initializer.versioning import DEVSECOPS_VERSION
+from devsecops_initializer.web import static_asset
 
 
 POM = """<project>
@@ -73,6 +74,11 @@ class InitializerTests(unittest.TestCase):
             manifest = json.loads(archive.read(".devsecops/manifest.json"))
             self.assertEqual(DEVSECOPS_VERSION, manifest["devsecopsVersion"])
 
+    def test_shows_current_version_in_initializer_footer(self):
+        html = static_asset("index.html").decode()
+        self.assertIn(f"v{DEVSECOPS_VERSION}", html)
+        self.assertNotIn("__DEVSECOPS_VERSION__", html)
+
     def test_rejects_zip_slip(self):
         data = io.BytesIO()
         with zipfile.ZipFile(data, "w") as archive:
@@ -122,6 +128,9 @@ class InitializerTests(unittest.TestCase):
                 "docs/devsecops/dashboard.md",
             }
             self.assertTrue(expected.issubset(names))
+            dashboard = archive.read(".devsecops/dashboard/static/index.html").decode()
+            self.assertIn(f"v{DEVSECOPS_VERSION}", dashboard)
+            self.assertNotIn("__DEVSECOPS_VERSION__", dashboard)
             environment = archive.read(".devsecops/dashboard.env.example").decode()
             self.assertIn("GH_TOKEN=", environment)
             self.assertIn("AI_API_TOKEN=", environment)
