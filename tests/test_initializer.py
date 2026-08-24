@@ -119,10 +119,16 @@ class InitializerTests(unittest.TestCase):
                 ".devsecops/dashboard/Dockerfile",
                 ".devsecops/dashboard/report_api.py",
                 ".devsecops/dashboard/static/index.html",
-                ".devsecops/secrets/.gitignore",
                 "docs/devsecops/dashboard.md",
             }
             self.assertTrue(expected.issubset(names))
+            environment = archive.read(".devsecops/dashboard.env.example").decode()
+            self.assertIn("GH_TOKEN=", environment)
+            self.assertIn("AI_API_TOKEN=", environment)
+            compose = archive.read("compose.security.yml").decode()
+            self.assertIn("DASHBOARD_CONFIG_FILE", compose)
+            self.assertNotIn("env_file:", compose)
+            self.assertNotIn(".devsecops/secrets", compose)
             manifest = json.loads(archive.read(".devsecops/manifest.json"))
             self.assertTrue(manifest["capabilities"]["localDashboard"])
             guide = archive.read("docs/devsecops/dashboard.md").decode()

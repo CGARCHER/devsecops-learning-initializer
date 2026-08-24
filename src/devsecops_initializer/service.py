@@ -18,7 +18,6 @@ from .templates import (
     devsecops_gitignore,
     manifest,
     ruleset_text,
-    secrets_gitignore,
     security_setup,
     student_guide,
 )
@@ -84,14 +83,10 @@ DASHBOARD_PLAN_ITEMS = (
     ),
     (
         ".devsecops/dashboard.env.example",
-        "Variables del panel",
-        "Documenta el repositorio y la rama que se analizarán.",
+        "Configuración local del panel",
+        "Reúne el repositorio, la rama y los tokens en un único fichero excluido de Git.",
     ),
-    (
-        ".devsecops/secrets",
-        "Secretos locales",
-        "Prepara una carpeta excluida de Git para los tokens.",
-    ),
+
     (
         "docs/devsecops/dashboard.md",
         "Guía del panel",
@@ -255,7 +250,6 @@ class InitializerService:
             "compose.security.yml": dashboard_compose(),
             ".devsecops/dashboard.env.example": dashboard_environment(),
             ".devsecops/.gitignore": devsecops_gitignore(),
-            ".devsecops/secrets/.gitignore": secrets_gitignore(),
             "docs/devsecops/dashboard.md": dashboard_guide(),
         }
         for relative in (

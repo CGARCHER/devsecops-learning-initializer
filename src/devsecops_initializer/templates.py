@@ -106,20 +106,15 @@ def dashboard_compose() -> str:
     image: devsecops-learning-dashboard:local
     ports:
       - "8081:8080"
-    env_file:
-      - ./.devsecops/dashboard.env
     environment:
       REPORT_ROOT: /workspace/reports
       SOURCE_ROOT: /workspace/source
-      GH_TOKEN_FILE: /run/secrets/github_token
+      DASHBOARD_CONFIG_FILE: /run/secrets/dashboard.env
       AI_REMEDIATION_ENABLED: "true"
-      AI_API_TOKEN_FILE: /run/secrets/ai_api_token
-    secrets:
-      # Los tokens se leen desde archivos locales y no se incluyen en la imagen.
-      - github_token
-      - ai_api_token
     volumes:
       - security-reports:/workspace/reports
+      # La configuración se lee como fichero y los tokens no aparecen en docker inspect.
+      - ./.devsecops/dashboard.env:/run/secrets/dashboard.env:ro
       # El panel puede leer el código para orientar el parche, pero no modificarlo.
       - ./:/workspace/source:ro
     read_only: true
@@ -137,20 +132,21 @@ def dashboard_compose() -> str:
 
 volumes:
   security-reports:
-
-secrets:
-  github_token:
-    file: ./.devsecops/secrets/github_token.txt
-  ai_api_token:
-    file: ./.devsecops/secrets/ai_api_token.txt
 """
 
 
 def dashboard_environment() -> str:
-    return """GITHUB_REPOSITORY=propietario/repositorio
+    return """# Repositorio y workflow que consultará el panel.
+GITHUB_REPOSITORY=propietario/repositorio
 GITHUB_WORKFLOW_FILE=devsecops.yml
 GITHUB_BRANCH=develop
+
+# API de remediación ya desplegada.
 AI_API_URL=https://ai-api.cgarcher.dev/api/v1/remediations
+
+# Credenciales locales. No subas este fichero a Git.
+GH_TOKEN=
+AI_API_TOKEN=
 """
 
 
@@ -159,25 +155,27 @@ def dashboard_guide() -> str:
 
 El panel descarga el último informe de GitHub Actions y permite solicitar una explicación educativa a la API de IA. Solo se ejecuta en el equipo del alumno.
 
-## 1. Configurar el repositorio
+## 1. Crear la configuración local
 
-Copia `.devsecops/dashboard.env.example` como `.devsecops/dashboard.env` y sustituye `propietario/repositorio` por el repositorio real.
+Copia el fichero de ejemplo:
 
-## 2. Configurar el acceso a GitHub
+```bash
+cp .devsecops/dashboard.env.example .devsecops/dashboard.env
+```
 
-Crea un token *fine-grained*, limítalo al repositorio y concede los permisos **Actions: Read** y **Contents: Read**. Guarda únicamente el token en:
+En Windows PowerShell utiliza `Copy-Item ./.devsecops/dashboard.env.example ./.devsecops/dashboard.env`.
 
-`.devsecops/secrets/github_token.txt`
+## 2. Completar el único fichero de configuración
 
-## 3. Configurar el acceso a la IA
+Edita `.devsecops/dashboard.env` e indica:
 
-La API ya está desplegada y no requiere instalar ni configurar modelos. Guarda el Bearer Token facilitado en:
+- El repositorio con el formato `propietario/repositorio`.
+- Un token *fine-grained* de GitHub limitado al repositorio, con **Actions: Read** y **Contents: Read**.
+- El Bearer Token de la API de IA facilitado para el proyecto.
 
-`.devsecops/secrets/ai_api_token.txt`
+La API ya está desplegada y su URL, el workflow y la rama aparecen configurados. El fichero real está excluido de Git y no debe publicarse.
 
-No añadas ninguno de estos archivos a Git.
-
-## 4. Arrancar el panel
+## 3. Arrancar el panel
 
 ```bash
 docker compose -f compose.security.yml up -d --build
@@ -185,20 +183,12 @@ docker compose -f compose.security.yml up -d --build
 
 Abre `http://localhost:8081` y pulsa **Buscar último informe**.
 
-El código fuente se monta en modo de solo lectura. La IA devuelve una propuesta orientativa, pero el panel no modifica ningún fichero del proyecto.
+Docker monta la configuración como un fichero de solo lectura. Los tokens no se incluyen en la imagen ni aparecen en `docker inspect`. El código fuente también se monta en modo de solo lectura y el panel no modifica ningún fichero del proyecto.
 """
 
 
 def devsecops_gitignore() -> str:
     return """dashboard.env
-secrets/*
-!secrets/.gitignore
-"""
-
-
-def secrets_gitignore() -> str:
-    return """*
-!.gitignore
 """
 
 

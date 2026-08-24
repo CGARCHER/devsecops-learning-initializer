@@ -18,6 +18,38 @@ from pathlib import Path
 from typing import Any
 
 
+DASHBOARD_CONFIG_FILE = Path(
+    os.getenv("DASHBOARD_CONFIG_FILE", "/run/secrets/dashboard.env")
+)
+ALLOWED_CONFIG_KEYS = {
+    "GITHUB_REPOSITORY",
+    "GITHUB_WORKFLOW_FILE",
+    "GITHUB_BRANCH",
+    "AI_API_URL",
+    "GH_TOKEN",
+    "AI_API_TOKEN",
+}
+
+
+def load_dashboard_config(path: Path = DASHBOARD_CONFIG_FILE) -> None:
+    """Carga únicamente las claves conocidas del fichero local del panel."""
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return
+
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if key in ALLOWED_CONFIG_KEYS:
+            os.environ.setdefault(key, value.strip())
+
+
+load_dashboard_config()
+
 REPORT_ROOT = Path(os.getenv("REPORT_ROOT", "/workspace/reports"))
 SOURCE_ROOT = Path(os.getenv("SOURCE_ROOT", "/workspace/source"))
 AI_REMEDIATION_ENABLED = os.getenv(
@@ -30,9 +62,7 @@ AI_API_URL = os.getenv(
     "AI_API_URL",
     "",
 )
-AI_API_TOKEN_FILE = Path(
-    os.getenv("AI_API_TOKEN_FILE", "/run/secrets/ai_api_token")
-)
+
 REQUEST_HEADER = "X-Dashboard-Request"
 MAX_REQUEST_SIZE = 1024
 UPDATE_LOCK = threading.Lock()
@@ -200,17 +230,10 @@ def remediation_payload(
     }
 
 
-def read_ai_token(token_file: Path = AI_API_TOKEN_FILE) -> str:
+def read_ai_token() -> str:
     token = os.getenv("AI_API_TOKEN", "").strip()
-    if token:
-        return token
-
-    try:
-        token = token_file.read_text(encoding="utf-8").strip()
-    except OSError as error:
-        raise RequestError("El token de la API de IA no está configurado.") from error
     if not token:
-        raise RequestError("El token de la API de IA está vacío.")
+        raise RequestError("El token de la API de IA no está configurado.")
     return token
 
 

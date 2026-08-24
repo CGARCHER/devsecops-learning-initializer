@@ -161,9 +161,9 @@
         <aside id="dashboard-next-steps" class="next-steps" hidden>
           <h3>Antes de utilizar el dashboard</h3>
           <ol>
-            <li>Crea un token de GitHub con permisos <strong>Actions: Read</strong> y <strong>Contents: Read</strong>.</li>
-            <li>Guárdalo en <code>.devsecops/secrets/github_token.txt</code>.</li>
-            <li>Indica <code>propietario/repositorio</code> en <code>.devsecops/dashboard.env</code>.</li>
+            <li>Copia <code>.devsecops/dashboard.env.example</code> como <code>.devsecops/dashboard.env</code>.</li>
+            <li>Indica el repositorio y los tokens de GitHub e IA en ese único fichero.</li>
+            <li>No subas <code>.devsecops/dashboard.env</code> a Git.</li>
           </ol>
           <p>La IA ya está desplegada y no requiere configurar modelos. Consulta <code>docs/devsecops/dashboard.md</code> para ver todos los pasos.</p>
         </aside>

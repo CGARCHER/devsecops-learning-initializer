@@ -5,24 +5,13 @@ repository="${GITHUB_REPOSITORY:-}"
 workflow="${GITHUB_WORKFLOW_FILE:-security.yml}"
 branch="${GITHUB_BRANCH:-}"
 report_root="${REPORT_ROOT:-/workspace/reports}"
-token_file="${GH_TOKEN_FILE:-/run/secrets/github_token}"
-
 if [ -z "$repository" ]; then
   echo "ERROR: define GITHUB_REPOSITORY con el formato propietario/repositorio." >&2
   exit 1
 fi
 
 if [ -z "${GH_TOKEN:-}" ]; then
-  if [ ! -s "$token_file" ]; then
-    echo "ERROR: no se ha encontrado el token de GitHub en $token_file." >&2
-    exit 1
-  fi
-  GH_TOKEN="$(tr -d '\r\n' < "$token_file")"
-  export GH_TOKEN
-fi
-
-if [ -z "$GH_TOKEN" ]; then
-  echo "ERROR: el token de GitHub esta vacio." >&2
+  echo "ERROR: configura GH_TOKEN en .devsecops/dashboard.env." >&2
   exit 1
 fi
 

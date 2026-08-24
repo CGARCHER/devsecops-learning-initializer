@@ -70,13 +70,13 @@ const helpContent = {
     title: 'Remediación asistida por IA',
     tool: 'Componente: API de remediación desplegada',
     text: 'La API ya está desplegada y no requiere instalar ni configurar modelos. El panel envía únicamente el hallazgo seleccionado y el contexto de código necesario.',
-    file: '.devsecops/dashboard.env y .devsecops/secrets/',
+    file: '.devsecops/dashboard.env',
     student: 'Entender la propuesta, comprobar que corresponde al archivo real, aplicarla manualmente y volver a ejecutar los análisis.'
   },
   compose: {
     title: 'Docker Compose',
     tool: 'Herramienta: Docker Compose',
-    text: 'Define cómo construir y ejecutar el panel, cómo montar los informes y cómo entregar los tokens mediante secretos locales. No sustituye al Compose propio de la aplicación del alumno.',
+    text: 'Define cómo construir y ejecutar el panel, cómo montar los informes y cómo leer la configuración local sin incluir los tokens en la imagen. No sustituye al Compose propio de la aplicación del alumno.',
     file: 'compose.security.yml',
     student: 'Crear los archivos de configuración local y arrancar el panel con el comando explicado en la guía generada.'
   },
