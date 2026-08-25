@@ -34,8 +34,8 @@ const helpContent = {
   sca: {
     title: 'Análisis de dependencias (SCA)',
     tool: 'Herramienta: Trivy',
-    text: 'Trivy identifica las dependencias del proyecto y compara sus versiones con bases de datos de vulnerabilidades conocidas. En el perfil Spring Boot se revisan las dependencias Maven.',
-    file: 'pom.xml',
+    text: 'Trivy identifica las dependencias del proyecto y compara sus versiones con bases de datos de vulnerabilidades conocidas. En Spring Boot se revisan las dependencias Maven o Gradle, según la estructura detectada.',
+    file: 'pom.xml, build.gradle o build.gradle.kts',
     student: 'Comprobar qué componente es vulnerable, revisar la versión corregida y validar que la actualización no rompe la aplicación.'
   },
   container: {
@@ -69,7 +69,7 @@ const helpContent = {
   ai: {
     title: 'Remediación asistida por IA',
     tool: 'Componente: API de remediación desplegada',
-    text: 'La API ya está desplegada y no requiere instalar ni configurar modelos. El panel envía únicamente el hallazgo seleccionado y el contexto de código necesario.',
+    text: 'La API ya está desplegada y no requiere instalar ni configurar modelos. Al solicitar ayuda, el panel envía a la API el hallazgo seleccionado y el contexto mínimo necesario. No deben incluirse credenciales ni información sensible.',
     file: '.devsecops/dashboard.env',
     student: 'Entender la propuesta, comprobar que corresponde al archivo real, aplicarla manualmente y volver a ejecutar los análisis.'
   },
@@ -80,13 +80,7 @@ const helpContent = {
     file: 'compose.security.yml',
     student: 'Crear los archivos de configuración local y arrancar el panel con el comando explicado en la guía generada.'
   },
-  hardening: {
-    title: 'Hardening del entorno local',
-    tool: 'Medidas de seguridad de Docker',
-    text: 'El panel se ejecuta con un usuario sin privilegios, elimina capacidades Linux, impide obtener nuevos privilegios y monta el código fuente en modo de solo lectura.',
-    file: '.devsecops/dashboard/Dockerfile y compose.security.yml',
-    student: 'Revisar las medidas y comprender que reducen el impacto de un fallo, aunque no eliminan por sí solas todos los riesgos.'
-  }
+
 };
 
 function showHelp(concept) {

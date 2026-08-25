@@ -47,7 +47,7 @@
               <div class="control-header"><span>Control</span><span>Finalidad</span><span></span></div>
               <div class="control-row">
                 <span><strong>Integración continua</strong><small>GitHub Actions</small></span>
-                <span>Ejecutar automáticamente el pipeline.</span><button type="button" class="help-link help-action" data-help="workflow">Ver ayuda</button>
+                <span>Ejecutar automáticamente las pruebas y los análisis de seguridad.</span><button type="button" class="help-link help-action" data-help="workflow">Ver ayuda</button>
               </div>
               <div class="control-row">
                 <span><strong>Análisis SAST</strong><small>Semgrep</small></span>
@@ -63,7 +63,7 @@
               </div>
               <div class="control-row">
                 <span><strong>Política de seguridad</strong><small>Reglas del pipeline</small></span>
-                <span>Decidir cuándo debe bloquearse el proceso.</span><button type="button" class="help-link help-action" data-help="policy">Ver ayuda</button>
+                <span>Decidir si un cambio puede promocionarse a producción.</span><button type="button" class="help-link help-action" data-help="policy">Ver ayuda</button>
               </div>
               <div class="control-row">
                 <span><strong>Protección de ramas</strong><small>GitHub Rulesets</small></span>
@@ -75,11 +75,11 @@
           <details class="control-group" open>
             <summary class="selection-row optional-selection">
               <input id="include-dashboard" type="checkbox" aria-label="Incluir panel local y remediación con IA">
-              <span><strong>Panel local y remediación con IA</strong><small>Opcional. Solo se ejecuta en el equipo del alumno.</small></span>
+              <span><strong>Panel local y remediación con IA</strong><small>Opcional. El panel se ejecuta localmente y consulta la API de IA configurada.</small></span>
             </summary>
 
             <div class="optional-controls" id="optional-controls">
-              <p>Esta opción añade los siguientes componentes:</p>
+              <p>Si marcas esta opción, se añadirán los siguientes componentes:</p>
               <div class="control-table" aria-label="Componentes opcionales del dashboard">
                 <div class="control-header"><span>Componente</span><span>Finalidad</span><span></span></div>
                 <div class="control-row">
@@ -94,10 +94,7 @@
                   <span><strong>Entorno local</strong><small>Docker Compose</small></span>
                   <span>Arrancar el panel con un comando.</span><button type="button" class="help-link help-action" data-help="compose">Ver ayuda</button>
                 </div>
-                <div class="control-row">
-                  <span><strong>Hardening local</strong><small>Docker</small></span>
-                  <span>Reducir los permisos del contenedor.</span><button type="button" class="help-link help-action" data-help="hardening">Ver ayuda</button>
-                </div>
+
               </div>
             </div>
           </details>
@@ -109,7 +106,7 @@
           <p class="help-tool" id="help-tool"></p>
           <p id="help-text"></p>
           <dl>
-            <dt>Archivo relacionado</dt><dd><code id="help-file"></code></dd>
+            <dt>Archivo o componente relacionado</dt><dd><code id="help-file"></code></dd>
             <dt>Qué debe hacer el alumno</dt><dd id="help-student"></dd>
           </dl>
         </aside>

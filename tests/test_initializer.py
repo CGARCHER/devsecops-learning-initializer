@@ -79,6 +79,19 @@ class InitializerTests(unittest.TestCase):
         self.assertIn(f"v{DEVSECOPS_VERSION}", html)
         self.assertNotIn("__DEVSECOPS_VERSION__", html)
 
+    def test_initializer_frontend_is_clear_for_students(self):
+        html = static_asset("index.html").decode()
+        script = static_asset("app.js").decode()
+
+        self.assertNotIn("Hardening local", html)
+        self.assertNotIn("hardening:", script)
+        self.assertIn("las pruebas y los análisis de seguridad", html)
+        self.assertIn("promocionarse a producción", html)
+        self.assertIn("Si marcas esta opción", html)
+        self.assertIn("Archivo o componente relacionado", html)
+        self.assertIn("Maven o Gradle", script)
+        self.assertIn("No deben incluirse credenciales", script)
+
     def test_rejects_zip_slip(self):
         data = io.BytesIO()
         with zipfile.ZipFile(data, "w") as archive:
