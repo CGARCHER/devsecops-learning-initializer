@@ -205,6 +205,10 @@ Paquete DevSecOps instalado: **{DEVSECOPS_VERSION}**.
 - Java: {facts.java_version}
 - Contenedores: {container}
 
+## Cuándo se ejecuta
+
+El workflow se ejecuta con cada cambio y también cada lunes a las 06:00 UTC. La ejecución semanal permite detectar vulnerabilidades publicadas después del último commit.
+
 ## Flujo de trabajo recomendado
 
 1. Trabaja en una rama `feature/*` y sube cambios pequeños.

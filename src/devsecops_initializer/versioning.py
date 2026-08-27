@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Literal
 
 
-DEVSECOPS_VERSION = "0.9.2"
+DEVSECOPS_VERSION = "0.9.3"
 VersionState = Literal["not_installed", "current", "update_available", "newer"]
 
 

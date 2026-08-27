@@ -16,6 +16,8 @@ El asistente genera una copia. Se comparan los dos árboles y se revisan de form
 
 La rama se publica y GitHub Actions analiza el SHA de esa rama. SAST, SCA y contenedores se leen por separado. Un error técnico se corrige antes de interpretar el resultado.
 
+El análisis también se repite cada lunes, aunque no existan nuevos commits. Así se pueden detectar vulnerabilidades que hayan sido publicadas después de la última modificación del proyecto.
+
 ## 5. Corregir y comprobar
 
 El alumno selecciona un hallazgo, consulta la evidencia y prepara una corrección pequeña. Después ejecuta pruebas y un nuevo análisis. La tarea termina cuando puede relacionar la corrección con una evidencia posterior, no cuando desaparece visualmente una tarjeta del panel.
