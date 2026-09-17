@@ -1,44 +1,145 @@
-# DevSecOps Learning Initializer
+# Inicializador DevSecOps
 
-Prototipo educativo que incorpora una base DevSecOps en proyectos existentes sin obligar a adaptar manualmente cada repositorio. Spring Boot es el primer perfil implementado, pero el núcleo no depende de un framework concreto.
+Aplicación educativa que incorpora controles DevSecOps en un proyecto Spring Boot existente. Recibe un archivo ZIP, analiza su estructura y devuelve una copia independiente con la configuración de seguridad preparada.
 
-El asistente:
+- **Versión actual:** `0.9.3`
+- **Aplicación desplegada:** <https://start.cgarcher.dev/>
 
-- importa un ZIP o analiza una carpeta local;
-- detecta el framework, el gestor de construcción y la presencia de contenedores;
-- presenta un plan antes de escribir, distinguiendo archivos añadidos, modificados y no aplicables;
-- genera un ZIP nuevo y conserva intacto el original;
-- añade un workflow autónomo, su núcleo de análisis, rulesets para `develop` y `main` y una guía breve para el estudiante;
-- registra la versión del paquete DevSecOps y avisa al volver a importar una configuración anterior;
-- deja las decisiones específicas del framework en perfiles ampliables.
+El proyecto original nunca se modifica. El alumno revisa el plan antes de generar la copia y decide después qué cambios conserva.
 
-## Probar la interfaz
+## Recorrido del alumno
+
+```mermaid
+flowchart LR
+    A[Proyecto Spring Boot en ZIP] --> B[Detección de Maven o Gradle]
+    B --> C[Plan de archivos y controles]
+    C --> D{Selección}
+    D --> E[Base DevSecOps]
+    D --> F[Panel local opcional]
+    E --> G[Copia proyecto-devsecops.zip]
+    F --> G
+    G --> H[Revisión del alumno]
+    H --> I[GitHub Actions]
+```
+
+El inicializador no es un analizador de vulnerabilidades. Su función es preparar el proyecto para que GitHub Actions ejecute Semgrep, CycloneDX y Trivy de una forma repetible y comprensible.
+
+## Qué incorpora
+
+### Base DevSecOps
+
+Se añade en todos los proyectos generados:
+
+| Elemento | Para qué sirve |
+| --- | --- |
+| `.github/workflows/devsecops.yml` | Ejecuta los análisis en GitHub Actions. |
+| `.devsecops/engine/` | Contiene el perfil de Spring Boot, las reglas, la normalización y la política. |
+| `.devsecops/config.yml` | Registra la configuración detectada para el proyecto. |
+| `.devsecops/manifest.json` | Guarda la versión del paquete incorporado. |
+| `.github/rulesets/` | Incluye reglas importables para proteger `develop` y `main`. |
+| `SECURITY_SETUP.md` | Explica la configuración necesaria en GitHub. |
+| `docs/devsecops/guia-del-estudiante.md` | Ayuda a interpretar el flujo y comprobar una corrección. |
+
+### Panel local y remediación asistida
+
+Esta opción es voluntaria. Añade:
+
+| Elemento | Para qué sirve |
+| --- | --- |
+| `compose.security.yml` | Inicia el panel local mediante Docker Compose. |
+| `.devsecops/dashboard/` | Contiene el panel y la lógica para leer los informes. |
+| `.devsecops/dashboard.env.example` | Muestra las variables que debe completar el alumno. |
+| `docs/devsecops/dashboard.md` | Explica cómo configurar y arrancar el panel. |
+
+El panel puede consultar la API de remediación ya desplegada. La inteligencia artificial no recibe el repositorio completo, no modifica archivos y no aplica cambios automáticamente.
+
+## Utilizar la aplicación web
+
+1. Abre <https://start.cgarcher.dev/>.
+2. Elige si quieres añadir únicamente la base DevSecOps o también el panel local.
+3. Selecciona el ZIP del proyecto Spring Boot.
+4. Revisa el perfil detectado y los archivos que se van a incorporar.
+5. Descarga la copia. El nombre conserva el original y añade el sufijo `-devsecops.zip`.
+
+La interfaz admite proyectos Maven y Gradle. Si no existe Dockerfile, el análisis del contenedor queda registrado como `NOT_APPLICABLE`; esto no significa que el proyecto esté libre de vulnerabilidades.
+
+## Qué hacer después de descargar el ZIP
+
+1. Descomprime la copia y comprueba los archivos añadidos.
+2. Publica el proyecto en GitHub. El workflow es autónomo y no necesita acceder al repositorio del inicializador.
+3. Abre **Actions** y revisa la primera ejecución de `Seguridad DevSecOps`.
+4. Sigue `SECURITY_SETUP.md` para importar manualmente los *rulesets* de `develop` y `main`.
+5. Corrige los hallazgos en una rama y repite el análisis antes de integrar el cambio.
+
+El workflow utiliza el token temporal de GitHub Actions. No hace falta configurar un token personal para ejecutar los análisis.
+
+### Configurar el panel opcional
+
+El token personal solo es necesario si se ha incluido el panel y se quieren descargar los informes desde el equipo local:
+
+```powershell
+Copy-Item .\.devsecops\dashboard.env.example .\.devsecops\dashboard.env
+```
+
+Completa `.devsecops/dashboard.env` con:
+
+- `GITHUB_REPOSITORY`: repositorio con el formato `propietario/repositorio`.
+- `GH_TOKEN`: token *fine-grained* con **Actions: Read** y **Contents: Read**.
+- `AI_API_TOKEN`: token facilitado para consultar la API de remediación.
+
+Después inicia el panel:
 
 ```bash
+docker compose -f compose.security.yml up -d --build
+```
+
+Abre <http://localhost:8081> y pulsa **Buscar último informe**. El fichero real `dashboard.env` está excluido de Git y no debe publicarse.
+
+## Límites y protección del ZIP
+
+| Límite | Valor | Motivo |
+| --- | ---: | --- |
+| Tamaño del ZIP | 25 MB | Es suficiente para proyectos de clase sin incluir binarios ni dependencias descargadas. |
+| Número de elementos | 2.000 | Evita archivos con una cantidad desproporcionada de entradas. |
+| Tamaño descomprimido | 150 MB | Reduce el riesgo de agotar los recursos del VPS compartido. |
+
+También se rechazan rutas externas, intentos de ZIP Slip, enlaces simbólicos y ficheros cifrados. Las sesiones caducan a los 30 minutos y los archivos temporales se eliminan después de generar la copia.
+
+Estos valores están pensados para los proyectos educativos previstos y pueden reajustarse si cambian las necesidades del aula o los recursos disponibles.
+
+## Ejecutar el inicializador en local
+
+### Con Docker
+
+```bash
+docker build -t devsecops-initializer .
+docker run --rm -p 8080:8080 devsecops-initializer
+```
+
+Abre <http://localhost:8080>.
+
+### Con Python
+
+Se necesita Python 3.11 o superior:
+
+```bash
+python -m venv .venv
+python -m pip install -e .
 python -m devsecops_initializer.web --port 8080
 ```
 
-Abre `http://localhost:8080`, selecciona el ZIP de un proyecto Spring Boot y revisa el diagnóstico. Para ejecutar sin instalar el paquete:
-
-```bash
-set PYTHONPATH=src
-python -m devsecops_initializer.web --port 8080
-```
+En Windows puede ser necesario activar antes el entorno con `.\.venv\Scripts\Activate.ps1`.
 
 ## Uso por consola
 
+Después de instalar el proyecto:
+
 ```bash
-python -m devsecops_initializer.cli inspect ruta/al/proyecto
-python -m devsecops_initializer.cli generate ruta/al/proyecto salida.zip
+devsecops-init inspect ruta/al/proyecto
+devsecops-init generate ruta/al/proyecto salida.zip
 ```
 
-## Arquitectura ampliable
-
-Cada perfil implementa cuatro operaciones: `detect`, `inspect`, `plan` y `learning_content`. Para incorporar otro framework se añade una clase en `profiles/` y se registra en `registry.py`; el importador, la interfaz y el generador no cambian.
-
-El ZIP generado incorpora su propio workflow y el núcleo mínimo necesario en `.devsecops/engine`. El repositorio del alumno no depende del repositorio del inicializador para ejecutar GitHub Actions.
-
-La versión del paquete queda registrada en `.devsecops/manifest.json`. Cuando se vuelve a importar un proyecto, el asistente indica si ya está actualizado o si puede generar una copia con una versión más reciente.
+`inspect` muestra el diagnóstico sin modificar el proyecto. `generate` crea un ZIP nuevo con la base DevSecOps.
 
 ## Pruebas
 
@@ -46,15 +147,22 @@ La versión del paquete queda registrada en `.devsecops/manifest.json`. Cuando s
 python -m unittest discover -s tests -v
 ```
 
-Este repositorio forma parte de un TFM y prioriza la trazabilidad pedagógica: explica qué se incorpora, por qué se incorpora y cómo comprobarlo.
+La versión `0.9.3` incluye once pruebas automatizadas. Entre otros casos, comprueban Maven, la generación del workflow y las guías, el panel opcional, la ausencia de Dockerfile, la protección frente a ZIP Slip y la gestión de versiones.
 
-## Despliegue con Docker y Dokploy
+## Arquitectura ampliable
 
-El servicio puede desplegarse desde el `Dockerfile` como una aplicación única, sin base de datos ni volúmenes persistentes. Expone el puerto `8080` y el endpoint de salud `/health`.
+El núcleo se mantiene separado de los perfiles. Cada perfil implementa cuatro operaciones: `detect`, `inspect`, `plan` y `learning_content`. Para añadir otro framework se crea una clase en `profiles/`, se registra en `registry.py` y se incorporan pruebas con un proyecto representativo.
 
-En Dokploy se configura el repositorio, el puerto interno `8080`, un dominio HTTPS y el `Dockerfile` de la raíz. Como los alumnos envían código fuente, el acceso debe limitarse al grupo autorizado, por ejemplo mediante Cloudflare Access.
+- [`docs/architecture.md`](docs/architecture.md): organización interna y contrato de los perfiles.
+- [`docs/student-workflow.md`](docs/student-workflow.md): propuesta de uso en una práctica.
 
-Los proyectos se conservan temporalmente durante un máximo de 30 minutos. Después de generar el ZIP de salida se eliminan del servidor. El proyecto original nunca se modifica.
-## Selección de capacidades
+Spring Boot es el primer perfil funcional. Laravel u otros entornos pueden añadirse sin cambiar el proceso de importación ni la interfaz principal.
 
-La base DevSecOps se incorpora siempre. Desde la interfaz se puede añadir de forma opcional el panel local con remediación asistida por IA. Esta opción genera `compose.security.yml`, una configuración de ejemplo y una guía, pero no copia los Compose específicos de la aplicación ni modifica su infraestructura.
+## Repositorios del TFM
+
+- [Caso de referencia Movie Review](https://github.com/CGARCHER/movie-review-devsecops-mvp).
+- [API de remediación educativa](https://github.com/CGARCHER/ai-remediation).
+
+---
+
+Creado por [CGARCHER](https://github.com/CGARCHER).
