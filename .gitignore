@@ -1,8 +1,23 @@
+# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.coverage
+htmlcov/
+
+# Entorno virtual y configuracion local
 .venv/
-dist/
+venv/
+.env
+
+# Paquetes generados
 build/
+dist/
 *.egg-info/
 
+# Entornos de desarrollo y sistema operativo
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
