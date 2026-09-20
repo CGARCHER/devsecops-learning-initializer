@@ -3,6 +3,7 @@ from __future__ import annotations
 import shutil
 import tempfile
 import zipfile
+from dataclasses import dataclass
 from pathlib import Path
 
 
@@ -11,7 +12,15 @@ MAX_EXPANDED_BYTES = 150 * 1024 * 1024
 MAX_ZIP_MEMBERS = 2000
 
 
-def safe_extract_zip(data: bytes) -> Path:
+@dataclass(frozen=True)
+class ExtractedProject:
+    """Distingue el proyecto de la carpeta temporal completa que debe eliminarse."""
+
+    root: Path
+    workspace: Path
+
+
+def safe_extract_zip(data: bytes) -> ExtractedProject:
     """Extrae un ZIP aplicando límites y evitando rutas fuera del directorio temporal."""
     if len(data) > MAX_ZIP_BYTES:
         raise ValueError("El ZIP supera el límite de 25 MB.")
@@ -32,7 +41,7 @@ def safe_extract_zip(data: bytes) -> Path:
     except (ValueError, RuntimeError):
         shutil.rmtree(destination, ignore_errors=True)
         raise
-    return normalize_project_root(project_dir)
+    return ExtractedProject(root=normalize_project_root(project_dir), workspace=destination)
 
 
 def _validate_members(members: list[zipfile.ZipInfo], project_dir: Path) -> None:

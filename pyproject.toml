@@ -19,5 +19,5 @@ devsecops-init = "devsecops_initializer.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-devsecops_initializer = ["static/*"]
+devsecops_initializer = ["static/*", "template_files/*"]
 "devsecops_initializer.dashboard_assets" = ["Dockerfile", "*.sh", "static/*"]

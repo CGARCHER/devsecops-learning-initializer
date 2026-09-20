@@ -155,9 +155,8 @@ class InitializerService:
             raise ValueError(
                 "El proyecto utiliza una versión DevSecOps más reciente que este inicializador."
             )
-        temporary = Path(tempfile.mkdtemp(prefix="devsecops-output-"))
-        workspace = temporary / "project"
-        try:
+        with tempfile.TemporaryDirectory(prefix="devsecops-output-") as temporary:
+            workspace = Path(temporary) / "project"
             # Se trabaja sobre una copia temporal para no sobrescribir archivos del alumno.
             shutil.copytree(root, workspace, ignore=shutil.ignore_patterns(*IGNORED_PROJECT_ITEMS))
             generated = self._generated_files(plan, include_dashboard)
@@ -166,8 +165,6 @@ class InitializerService:
                 generated.update(self._dashboard_files())
             self._write_files(workspace, generated)
             return self._compress(workspace)
-        finally:
-            shutil.rmtree(temporary, ignore_errors=True)
 
     @classmethod
     def _generated_files(

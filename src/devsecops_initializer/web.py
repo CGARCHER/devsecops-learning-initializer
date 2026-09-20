@@ -2,24 +2,19 @@ from __future__ import annotations
 
 import argparse
 import json
-import secrets
 import shutil
 import time
-from dataclasses import dataclass
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib.resources import files
-from pathlib import Path
-from threading import Lock
 from urllib.parse import parse_qs, urlparse
 
 from .importer import MAX_ZIP_BYTES, safe_extract_zip
 from .service import InitializerService
+from .sessions import UploadSession, cleanup_expired_sessions, store_session, take_session
 from .versioning import DEVSECOPS_VERSION
 
 
-SESSION_TTL_SECONDS = 30 * 60
-MAX_SESSIONS = 20
 STATIC_CONTENT_TYPES = {
     "index.html": "text/html; charset=utf-8",
     "app.js": "text/javascript; charset=utf-8",
@@ -40,55 +35,6 @@ def static_asset(asset: str) -> bytes:
             DEVSECOPS_VERSION.encode("utf-8"),
         )
     return data
-
-
-@dataclass(frozen=True)
-class UploadSession:
-    root: Path
-    workspace: Path
-    created_at: float
-    include_dashboard: bool
-
-
-SESSIONS: dict[str, UploadSession] = {}
-SESSIONS_LOCK = Lock()
-
-
-def upload_workspace(root: Path) -> Path:
-    for candidate in (root, *root.parents):
-        if candidate.name.startswith("devsecops-init-"):
-            return candidate
-    raise ValueError("No se ha podido identificar el espacio temporal del proyecto.")
-
-
-def cleanup_expired_sessions() -> None:
-    """Elimina los proyectos temporales cuya sesión ya ha caducado."""
-    limit = time.time() - SESSION_TTL_SECONDS
-    with SESSIONS_LOCK:
-        expired = [token for token, session in SESSIONS.items() if session.created_at < limit]
-        sessions = [SESSIONS.pop(token) for token in expired]
-    for session in sessions:
-        shutil.rmtree(session.workspace, ignore_errors=True)
-
-
-def store_session(session: UploadSession) -> str:
-    """Guarda una sesión temporal y devuelve el identificador para generar el ZIP."""
-    with SESSIONS_LOCK:
-        if len(SESSIONS) >= MAX_SESSIONS:
-            shutil.rmtree(session.workspace, ignore_errors=True)
-            raise ValueError("El servicio está ocupado. Inténtalo de nuevo más tarde.")
-        token = secrets.token_urlsafe(18)
-        SESSIONS[token] = session
-    return token
-
-
-def take_session(token: str) -> UploadSession:
-    """Recupera y elimina una sesión para que solo pueda utilizarse una vez."""
-    with SESSIONS_LOCK:
-        session = SESSIONS.pop(token, None)
-    if not session:
-        raise ValueError("La sesión ha caducado. Vuelve a analizar el ZIP.")
-    return session
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -129,8 +75,8 @@ class Handler(BaseHTTPRequestHandler):
         """Analiza el ZIP y crea la sesión necesaria para generar la copia."""
         options = parse_qs(query)
         include_dashboard = options.get("dashboard", ["false"])[0].lower() == "true"
-        root = safe_extract_zip(self._read_upload())
-        workspace = upload_workspace(root)
+        extracted = safe_extract_zip(self._read_upload())
+        root, workspace = extracted.root, extracted.workspace
 
         try:
             plan = self.service.analyze(root, include_dashboard).public()

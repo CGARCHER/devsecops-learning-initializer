@@ -6,6 +6,16 @@ El proyecto separa tres decisiones que no deben evolucionar al mismo ritmo:
 2. Los perfiles conocen la estructura de un framework. Spring Boot es el primer perfil; su lógica no se reparte por la interfaz ni por el importador.
 3. El workflow autónomo y los adaptadores ejecutan herramientas concretas y transforman sus informes al modelo común.
 
+## Organización del código
+
+- `web.py` recibe las peticiones y devuelve el diagnóstico o el ZIP generado.
+- `sessions.py` guarda las sesiones de carga, limita su número y elimina los proyectos caducados. El bloqueo protege el acceso desde peticiones simultáneas.
+- `importer.py` valida y extrae el ZIP. `safe_extract_zip` devuelve un `ExtractedProject` con `root` (el proyecto) y `workspace` (la carpeta temporal completa que debe limpiarse). No se deduce la carpeta temporal a partir del nombre del proyecto.
+- `service.py` coordina el análisis y genera una copia. La carpeta de salida utiliza `TemporaryDirectory` para limpiarse también si la generación falla.
+- `templates.py` prepara los valores variables y los documentos JSON. Los textos largos y las configuraciones se guardan en `template_files/`, incluida en el paquete instalable.
+
+Las plantillas `config.yml` y `student_guide.md` utilizan campos entre llaves que completa `templates.py`. En esas dos plantillas, una llave literal debe escribirse duplicada. Las demás se cargan sin sustituciones.
+
 ## Contrato de un perfil
 
 Un perfil implementa:

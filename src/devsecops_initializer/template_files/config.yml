@@ -1,0 +1,18 @@
+schemaVersion: '1.0'
+devsecopsVersion: {devsecops_version}
+profile:
+  id: {facts_profile_id}
+project:
+  root: .
+  buildSystem: {facts_build_system}
+  javaVersion: {facts_java_version}
+  dockerfile: {dockerfile}
+analysis:
+  sast: semgrep
+  sca: trivy-sca
+  container: trivy
+policy:
+  blockOn: [CRITICAL]
+  requireReviewOn: [HIGH]
+dashboard:
+  enabled: {dashboard_enabled}
