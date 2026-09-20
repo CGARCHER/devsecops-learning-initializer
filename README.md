@@ -2,7 +2,7 @@
 
 Aplicación educativa que incorpora controles DevSecOps en un proyecto Spring Boot existente. Recibe un archivo ZIP, analiza su estructura y devuelve una copia independiente con la configuración de seguridad preparada.
 
-- **Versión actual:** `0.9.3`
+- **Versión actual:** `0.9.4`
 - **Aplicación desplegada:** <https://start.cgarcher.dev/>
 
 El proyecto original nunca se modifica. El alumno revisa el plan antes de generar la copia y decide después qué cambios conserva.
@@ -147,7 +147,7 @@ devsecops-init generate ruta/al/proyecto salida.zip
 python -m unittest discover -s tests -v
 ```
 
-La versión `0.9.3` incluye once pruebas automatizadas. Entre otros casos, comprueban Maven, la generación del workflow y las guías, el panel opcional, la ausencia de Dockerfile, la protección frente a ZIP Slip y la gestión de versiones.
+La versión `0.9.4` incluye quince pruebas automatizadas. Entre otros casos, comprueban Maven, la generación del workflow y las guías, el panel opcional, la ausencia de Dockerfile, la protección frente a ZIP Slip, la gestión de versiones, la limpieza de sesiones y el flujo web de carga y descarga.
 
 ## Arquitectura ampliable
 
