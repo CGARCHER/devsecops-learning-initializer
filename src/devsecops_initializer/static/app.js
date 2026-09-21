@@ -48,8 +48,8 @@ const helpContent = {
   policy: {
     title: 'Política de seguridad',
     tool: 'Componente: evaluación del pipeline',
-    text: 'La política agrupa los hallazgos por severidad y toma una decisión común. La configuración generada establece el bloqueo ante hallazgos críticos y la revisión de los hallazgos altos.',
-    file: '.devsecops/config.yml',
+    text: 'La política agrupa los hallazgos por severidad y toma una decisión común. La configuración generada bloquea los hallazgos críticos y exige revisar los altos y los de gravedad desconocida (UNKNOWN).',
+    file: '.devsecops/engine/security/policy.json',
     student: 'No interpretar un pipeline correcto como seguridad absoluta: significa que se ha cumplido la política definida para el proyecto.'
   },
   rulesets: {
@@ -98,6 +98,7 @@ document.querySelectorAll('.help-link').forEach(button => {
 });
 
 dashboardCheckbox.addEventListener('change', () => {
+  resetPlan();
   document.querySelector('.optional-selection').classList.toggle('selected', dashboardCheckbox.checked);
   const concept = dashboardCheckbox.checked ? 'dashboard' : 'workflow';
   showHelp(concept);
@@ -108,17 +109,30 @@ dashboardCheckbox.addEventListener('click', event => event.stopPropagation());
 
 showHelp('workflow');
 
-fileInput.addEventListener('change', updateAnalyzeButton);
+fileInput.addEventListener('change', resetPlan);
 analyzeButton.addEventListener('click', analyzeProject);
 generateButton.addEventListener('click', downloadProject);
 
-function updateAnalyzeButton() {
+function resetPlan() {
+  // El resultado solo sirve para el ZIP y las opciones que se analizaron.
+  session = '';
+  document.querySelector('#result').hidden = true;
+  dashboardNextSteps.hidden = true;
+  errorMessage.textContent = '';
+  setButtonState(generateButton, true, DOWNLOAD_LABEL);
   analyzeButton.disabled = fileInput.files.length === 0;
 }
 
+function setBusy(busy) {
+  // Impide cambiar de proyecto mientras se analiza o se prepara la descarga.
+  fileInput.disabled = busy;
+  dashboardCheckbox.disabled = busy;
+  analyzeButton.disabled = busy || fileInput.files.length === 0;
+}
+
 async function analyzeProject() {
-  errorMessage.textContent = '';
-  dashboardNextSteps.hidden = true;
+  resetPlan();
+  setBusy(true);
   setButtonState(analyzeButton, true, 'Analizando…');
 
   try {
@@ -137,12 +151,15 @@ async function analyzeProject() {
   } catch (error) {
     showError(error);
   } finally {
-    setButtonState(analyzeButton, false, ANALYZE_LABEL);
+    analyzeButton.textContent = ANALYZE_LABEL;
+    setBusy(false);
   }
 }
 
 async function downloadProject() {
+  if (!session) return;
   errorMessage.textContent = '';
+  setBusy(true);
   setButtonState(generateButton, true, 'Generando…');
 
   try {
@@ -154,11 +171,13 @@ async function downloadProject() {
 
     downloadBlob(await response.blob(), preparedFilename());
     dashboardNextSteps.hidden = !dashboardIncluded;
-    session = '';
   } catch (error) {
     showError(error);
   } finally {
-    setButtonState(generateButton, false, DOWNLOAD_LABEL);
+    // La sesión es de un solo uso; incluso tras un error hay que analizar de nuevo.
+    session = '';
+    setButtonState(generateButton, true, 'Analiza de nuevo para descargar otra copia');
+    setBusy(false);
   }
 }
 
@@ -188,6 +207,7 @@ function downloadBlob(blob, filename) {
 
 function renderPlan(data) {
   session = data.session;
+  setButtonState(generateButton, false, DOWNLOAD_LABEL);
   document.querySelector('#result').hidden = false;
   document.querySelector('#profile').textContent = data.facts.profile_name;
   document.querySelector('#evidence').textContent = `Evidencias: ${data.facts.evidence.join(', ')}`;

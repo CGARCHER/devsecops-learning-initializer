@@ -83,7 +83,7 @@ main { padding-top: 28px; padding-bottom: 55px; }
 .upload-heading { margin-bottom: 18px; }
 .upload-area label, .upload-area input { display: block; }
 .upload-area label { font-size: 16px; }
-.upload-area input { margin: 14px 0 9px; font-size: 15px; }
+.upload-area input { max-width: 100%; margin: 14px 0 9px; font-size: 15px; }
 .upload-area input::file-selector-button { margin-right: 10px; padding: 9px 14px; border: 1px solid #879b94; border-radius: 5px; background: white; color: #1d302a; font-weight: 600; cursor: pointer; }
 .upload-area input::file-selector-button:hover { background: var(--soft-green); }
 .upload-area p { margin: 0 0 19px; color: var(--muted); font-size: 14px; }
