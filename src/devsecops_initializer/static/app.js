@@ -11,6 +11,8 @@ const helpStudent = document.querySelector('#help-student');
 const dashboardNextSteps = document.querySelector('#dashboard-next-steps');
 const ANALYZE_LABEL = 'Analizar proyecto';
 const DOWNLOAD_LABEL = 'Descargar proyecto preparado';
+const MAX_ZIP_BYTES = 25 * 1024 * 1024;
+const ANALYZE_TIMEOUT_MS = 120000;
 let session = '';
 let dashboardIncluded = false;
 
@@ -118,29 +120,44 @@ function resetPlan() {
   session = '';
   document.querySelector('#result').hidden = true;
   dashboardNextSteps.hidden = true;
-  errorMessage.textContent = '';
+  errorMessage.textContent = uploadError();
   setButtonState(generateButton, true, DOWNLOAD_LABEL);
-  analyzeButton.disabled = fileInput.files.length === 0;
+  analyzeButton.disabled = fileInput.files.length === 0 || Boolean(errorMessage.textContent);
+}
+
+function uploadError() {
+  // Rechaza el archivo antes de enviarlo; el servidor mantiene su propio límite.
+  const file = fileInput.files[0];
+  if (!file) return '';
+  if (!/\.zip$/i.test(file.name)) return 'Selecciona un archivo ZIP.';
+  if (file.size > MAX_ZIP_BYTES) {
+    return 'El ZIP supera el límite de 25 MB. Crea una copia sin .git, target, build ni informes generados.';
+  }
+  return '';
 }
 
 function setBusy(busy) {
   // Impide cambiar de proyecto mientras se analiza o se prepara la descarga.
   fileInput.disabled = busy;
   dashboardCheckbox.disabled = busy;
-  analyzeButton.disabled = busy || fileInput.files.length === 0;
+  analyzeButton.disabled = busy || fileInput.files.length === 0 || Boolean(uploadError());
 }
 
 async function analyzeProject() {
   resetPlan();
+  if (analyzeButton.disabled) return;
   setBusy(true);
   setButtonState(analyzeButton, true, 'Analizando…');
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ANALYZE_TIMEOUT_MS);
 
   try {
     const requestedDashboard = dashboardCheckbox.checked;
     const response = await fetch(`/api/analyze?dashboard=${requestedDashboard}`, {
       method: 'POST',
       headers: {'Content-Type': 'application/zip'},
-      body: fileInput.files[0]
+      body: fileInput.files[0],
+      signal: controller.signal
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'No se ha podido analizar el proyecto.');
@@ -149,8 +166,11 @@ async function analyzeProject() {
     dashboardIncluded = requestedDashboard;
     renderPlan(data);
   } catch (error) {
-    showError(error);
+    showError(controller.signal.aborted
+      ? new Error('El análisis ha superado los dos minutos de espera. Comprueba la conexión y vuelve a intentarlo.')
+      : error);
   } finally {
+    clearTimeout(timeout);
     analyzeButton.textContent = ANALYZE_LABEL;
     setBusy(false);
   }
