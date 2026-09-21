@@ -2,9 +2,26 @@
 
 El proyecto incluye reglas para proteger `develop` y `main`. La importación es manual y no requiere entregar un token administrativo al inicializador.
 
+## Por dónde empezar
+
+Sigue los apartados 1 a 4 para dejar preparado el repositorio. Solo se hacen una vez. Después, el trabajo habitual es subir cambios, revisar los análisis y abrir una PR.
+
+- **Análisis en GitHub:** no necesitan tokens personales ni un servidor.
+- **Panel local e IA:** son opcionales. Si los has incluido, sigue `docs/devsecops/dashboard.md`.
+- **Despliegue en un servidor:** es opcional. Los apartados 5 y 6 solo se aplican cuando lo conectes.
+
+No necesitas configurar etiquetas de despliegue para empezar a utilizar los análisis.
+
 ## 1. Publicar la configuración
 
-Sube los archivos generados a GitHub. Si la rama `develop` todavía no existe, créala desde `main`.
+Si empiezas desde cero:
+
+1. Crea un repositorio vacío en GitHub, sin añadir README, licencia ni `.gitignore`: usarás los archivos del proyecto descargado.
+2. Descomprime el ZIP generado y abre la carpeta del proyecto con tu herramienta de Git, por ejemplo GitHub Desktop.
+3. Guarda el primer commit en `main` y publica los archivos en ese repositorio. Incluye las carpetas `.github` y `.devsecops`; no subas credenciales.
+4. Crea la rama `develop` desde `main` y publícala también.
+
+Si el repositorio ya existe, incorpora los archivos generados mediante una PR y conserva su historial. Si `develop` no existe, créala desde `main`.
 
 ## 2. Ejecutar el workflow
 
@@ -29,7 +46,7 @@ Los rulesets impiden eliminar las ramas protegidas, evitan actualizaciones que n
 
 La configuración permite trabajar solo: no exige aprobaciones de otra persona. En equipo se puede aumentar el número de revisiones obligatorias.
 
-## 5. Conectar la autorización al despliegue
+## 5. Opcional: conectar la autorización al despliegue
 
 El inicializador incluye `.github/workflows/authorize-main.yml`. Comprueba el último análisis del commit de `main`, independientemente del entorno de destino. No despliega ni configura Dokploy u otro proveedor.
 
@@ -69,6 +86,18 @@ En el trabajo que realiza el despliegue añade `needs: [seguridad]` e `if: needs
 El despliegue y su checkout deben utilizar exactamente `${{ needs.seguridad.outputs.sha }}`, no volver a resolver la punta de `main`. En una ejecución automática, `github.sha` puede ser distinto del commit analizado. Todos los despliegues de `main` deben pasar por esta comprobación; un autodespliegue independiente del proveedor no queda protegido. En otras ramas, este workflow permite las pruebas de desarrollo sin exigir aceptación.
 
 Añadir los archivos al ZIP no conecta automáticamente un despliegue existente: hay que incorporar esa dependencia. La conexión sigue el mecanismo de [workflows reutilizables de GitHub](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
+
+### Solo si tu despliegue utiliza etiquetas `deploy-*`
+
+Una etiqueta identifica el commit que debe desplegarse. Para impedir que después se cambie o se borre, configura una vez esta protección en el repositorio:
+
+1. Abre **Settings → Rules → Rulesets → New ruleset → New tag ruleset**.
+2. Escribe **Proteger etiquetas de despliegue** y selecciona **Active**.
+3. En **Add target → Include by pattern**, añade `deploy-*`.
+4. Marca **Restrict updates**, **Restrict deletions** y **Block force pushes**.
+5. Deja **Restrict creations** desmarcado y la lista de excepciones vacía. Guarda con **Create**.
+
+Esto permite crear etiquetas nuevas y protege las existentes. No añade pasos a cada despliegue. Si tu integración no utiliza estas etiquetas, omite este apartado.
 
 ## 6. Revisar y aceptar el riesgo
 

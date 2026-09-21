@@ -55,9 +55,11 @@ function renderSummary(summary) {
 function renderChart(counts) {
   const chart = byId("severity-chart");
   chart.replaceChildren();
-  const maximum = Math.max(...severityOrder.map((level) => counts[level] ?? 0), 1);
+  // No ocultar los hallazgos cuya severidad no se ha podido determinar.
+  const levels = counts.UNKNOWN > 0 ? [...severityOrder, "UNKNOWN"] : severityOrder;
+  const maximum = Math.max(...levels.map((level) => counts[level] ?? 0), 1);
 
-  for (const severity of severityOrder) {
+  for (const severity of levels) {
     const value = counts[severity] ?? 0;
     const row = document.createElement("div");
     row.className = "chart-row";

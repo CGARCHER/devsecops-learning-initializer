@@ -56,6 +56,8 @@ El panel puede consultar la API de remediación ya desplegada. La inteligencia a
 
 ## Utilizar la aplicación web
 
+Si empiezas desde cero, crea primero tu aplicación Spring Boot y comprueba que arranca. El inicializador añade la configuración de seguridad; no crea la aplicación. Prepara un ZIP del proyecto sin contraseñas, tokens ni archivos `.env` reales.
+
 1. Abre <https://start.cgarcher.dev/>.
 2. Elige si quieres añadir únicamente la base DevSecOps o también el panel local.
 3. Selecciona el ZIP del proyecto Spring Boot.
@@ -71,7 +73,12 @@ La interfaz admite proyectos Maven y Gradle. Si no existe Dockerfile, el anális
 3. Abre **Actions** y revisa la primera ejecución de `Seguridad DevSecOps`.
 4. Sigue `SECURITY_SETUP.md` para importar manualmente los *rulesets* de `develop` y `main`.
 5. Revisa los hallazgos, corrige lo necesario y repite el análisis antes de integrar el cambio.
-6. Conecta `authorize-main.yml` a tu workflow de despliegue siguiendo el `SECURITY_SETUP.md` generado. Comprueba su salida `allowed` y despliega el commit de su salida `sha`. Con el disparador indicado, `APPROVED` permite continuar automáticamente al terminar el análisis de un push a `main`. El inicializador no configura el proveedor de despliegue.
+
+**Con esto ya puedes trabajar con los análisis de seguridad.** No necesitas Dokploy, claves de IA ni etiquetas de despliegue para empezar.
+
+### Opcional: desplegar la aplicación
+
+Cuando quieras publicar la aplicación en un servidor, sigue el apartado de despliegue de `SECURITY_SETUP.md`. Conecta `authorize-main.yml` a tu workflow, comprueba su salida `allowed` y despliega el commit de su salida `sha`. El inicializador no configura el proveedor de despliegue.
 
 El check obligatorio `security / aggregate` bloquea los errores técnicos, pero permite integrar con hallazgos revisados. Antes de desplegar `main`, los estados `BLOCKED` y `REVIEW_REQUIRED` exigen una aceptación explícita del riesgo mediante una casilla al lanzar manualmente el despliegue. El workflow comprueba el análisis del mismo commit. Es válido trabajar solo o en equipo. El entorno de destino no cambia esta comprobación.
 
