@@ -54,7 +54,7 @@
                 <span>Revisar patrones inseguros en el código.</span><button type="button" class="help-link help-action" data-help="sast">Ver ayuda</button>
               </div>
               <div class="control-row">
-                <span><strong>Análisis SCA</strong><small>Trivy</small></span>
+                <span><strong>Análisis SCA</strong><small>CycloneDX y Trivy</small></span>
                 <span>Detectar dependencias vulnerables.</span><button type="button" class="help-link help-action" data-help="sca">Ver ayuda</button>
               </div>
               <div class="control-row">
@@ -80,10 +80,10 @@
 
             <div class="optional-controls" id="optional-controls">
               <p>Si marcas esta opción, se añadirán los siguientes componentes:</p>
-              <div class="control-table" aria-label="Componentes opcionales del dashboard">
+              <div class="control-table" aria-label="Componentes opcionales del panel">
                 <div class="control-header"><span>Componente</span><span>Finalidad</span><span></span></div>
                 <div class="control-row">
-                  <span><strong>Panel de seguridad</strong><small>Dashboard local</small></span>
+                  <span><strong>Panel de seguridad</strong><small>Panel local</small></span>
                   <span>Presentar los informes de forma visual.</span><button type="button" class="help-link help-action" data-help="dashboard">Ver ayuda</button>
                 </div>
                 <div class="control-row">
@@ -156,7 +156,7 @@
         </div>
         <button id="generate" disabled>Descargar proyecto preparado</button>
         <aside id="dashboard-next-steps" class="next-steps" hidden>
-          <h3>Antes de utilizar el dashboard</h3>
+          <h3>Antes de utilizar el panel</h3>
           <ol>
             <li>Copia <code>.devsecops/dashboard.env.example</code> como <code>.devsecops/dashboard.env</code>.</li>
             <li>Indica el repositorio y los tokens de GitHub e IA en ese único fichero.</li>

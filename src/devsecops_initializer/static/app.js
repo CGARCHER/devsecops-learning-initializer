@@ -33,8 +33,8 @@ const helpContent = {
   },
   sca: {
     title: 'Análisis de dependencias (SCA)',
-    tool: 'Herramienta: Trivy',
-    text: 'Trivy identifica las dependencias del proyecto y compara sus versiones con bases de datos de vulnerabilidades conocidas. En Spring Boot se revisan las dependencias Maven o Gradle, según la estructura detectada.',
+    tool: 'Herramientas: CycloneDX y Trivy',
+    text: 'CycloneDX genera un inventario de las dependencias del proyecto y Trivy busca vulnerabilidades conocidas en él. El inventario se obtiene desde Maven o Gradle, según la estructura detectada.',
     file: 'pom.xml, build.gradle o build.gradle.kts',
     student: 'Comprobar qué componente es vulnerable, revisar la versión corregida y validar que la actualización no rompe la aplicación.'
   },
@@ -61,7 +61,7 @@ const helpContent = {
   },
   dashboard: {
     title: 'Panel local de seguridad',
-    tool: 'Componente: dashboard local',
+    tool: 'Componente: panel local',
     text: 'El panel descarga el último artefacto del workflow y presenta el estado, las severidades y el detalle de los hallazgos. Está pensado para ejecutarse en local, no como servicio público.',
     file: '.devsecops/dashboard/ y compose.security.yml',
     student: 'Configurar el repositorio y un token personal de GitHub con permisos de lectura antes de arrancar el panel.'

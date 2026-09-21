@@ -41,12 +41,12 @@ COMMON_PLAN_ITEMS = (
     (
         ".github/rulesets/main-protection.json",
         "Protección de la rama main",
-        "Exige una pull request y el resultado favorable del análisis de seguridad.",
+        "Prepara una regla que, una vez importada en GitHub, exige una pull request y un análisis de seguridad favorable.",
     ),
     (
         ".github/rulesets/develop-protection.json",
         "Protección de la rama develop",
-        "Aplica el mismo control antes de integrar los cambios de desarrollo.",
+        "Prepara la misma protección para develop; debe importarse en GitHub.",
     ),
     (
         ".devsecops/config.yml",
@@ -84,7 +84,7 @@ DASHBOARD_PLAN_ITEMS = (
     (
         ".devsecops/dashboard.env.example",
         "Configuración local del panel",
-        "Reúne el repositorio, la rama y los tokens en un único fichero excluido de Git.",
+        "Plantilla para configurar el repositorio, la rama y los tokens del panel.",
     ),
 
     (
@@ -144,7 +144,7 @@ class InitializerService:
                 reason,
                 line=1,
                 before=before,
-                after="Contenido regenerado por el asistente",
+                after="Contenido regenerado por el inicializador",
             )
         return Change("add", relative, title, reason, line=1, after="Archivo nuevo")
 
