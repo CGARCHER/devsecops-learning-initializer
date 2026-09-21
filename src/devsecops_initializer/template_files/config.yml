@@ -13,6 +13,6 @@ analysis:
   container: trivy
 policy:
   blockOn: [CRITICAL]
-  requireReviewOn: [HIGH]
+  requireReviewOn: [HIGH, UNKNOWN]
 dashboard:
   enabled: {dashboard_enabled}

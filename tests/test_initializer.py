@@ -150,6 +150,8 @@ class InitializerTests(unittest.TestCase):
             self.assertIn("AI_API_TOKEN=", environment)
             compose = archive.read("compose.security.yml").decode()
             self.assertIn("DASHBOARD_CONFIG_FILE", compose)
+            self.assertIn("127.0.0.1:8081:8080", compose)
+            self.assertIn('<option value="UNKNOWN">UNKNOWN</option>', dashboard)
             self.assertNotIn("env_file:", compose)
             self.assertNotIn(".devsecops/secrets", compose)
             report_script = archive.read(".devsecops/dashboard/security_report.sh").decode()

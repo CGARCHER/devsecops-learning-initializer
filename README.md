@@ -147,7 +147,7 @@ devsecops-init generate ruta/al/proyecto salida.zip
 python -m unittest discover -s tests -v
 ```
 
-La versión `0.9.4` incluye quince pruebas automatizadas. Entre otros casos, comprueban Maven, la generación del workflow y las guías, el panel opcional, la ausencia de Dockerfile, la protección frente a ZIP Slip, la gestión de versiones, la limpieza de sesiones y el flujo web de carga y descarga.
+La versión `0.9.4` incluye veinte pruebas automatizadas. Entre otros casos, comprueban Maven, la generación del workflow y las guías, el panel opcional, la ausencia de Dockerfile, la protección frente a ZIP Slip, la gestión de versiones, la limpieza de sesiones y el flujo web de carga y descarga.
 
 ## Arquitectura ampliable
 
@@ -166,3 +166,5 @@ Spring Boot es el primer perfil funcional. Laravel u otros entornos pueden añad
 ---
 
 Creado por [CGARCHER](https://github.com/CGARCHER).
+
+El panel local publica su puerto únicamente en 127.0.0.1. Los hallazgos con severidad UNKNOWN requieren revisión. Una política inválida genera una decisión ANALYSIS_ERROR.

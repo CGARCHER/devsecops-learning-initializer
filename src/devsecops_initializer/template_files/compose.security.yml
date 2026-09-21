@@ -4,7 +4,7 @@ services:
       context: ./.devsecops/dashboard
     image: devsecops-learning-dashboard:local
     ports:
-      - "8081:8080"
+      - "127.0.0.1:8081:8080"
     environment:
       REPORT_ROOT: /workspace/reports
       SOURCE_ROOT: /workspace/source
