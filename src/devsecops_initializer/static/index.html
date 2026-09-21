@@ -51,7 +51,7 @@
               </div>
               <div class="control-row">
                 <span><strong>Análisis SAST</strong><small>Semgrep</small></span>
-                <span>Revisar patrones inseguros en el código.</span><button type="button" class="help-link help-action" data-help="sast">Ver ayuda</button>
+                <span>Buscar patrones inseguros en el código Java.</span><button type="button" class="help-link help-action" data-help="sast">Ver ayuda</button>
               </div>
               <div class="control-row">
                 <span><strong>Análisis SCA</strong><small>CycloneDX y Trivy</small></span>
@@ -63,7 +63,7 @@
               </div>
               <div class="control-row">
                 <span><strong>Política de seguridad</strong><small>Reglas del pipeline</small></span>
-                <span>Decidir si un cambio puede promocionarse a producción.</span><button type="button" class="help-link help-action" data-help="policy">Ver ayuda</button>
+                <span>Evaluar si el despliegue de main requiere aceptar los hallazgos.</span><button type="button" class="help-link help-action" data-help="policy">Ver ayuda</button>
               </div>
               <div class="control-row">
                 <span><strong>Protección de ramas</strong><small>GitHub Rulesets</small></span>
@@ -88,7 +88,7 @@
                 </div>
                 <div class="control-row">
                   <span><strong>Remediación asistida</strong><small>API de IA</small></span>
-                  <span>Explicar y proponer cambios revisables.</span><button type="button" class="help-link help-action" data-help="ai">Ver ayuda</button>
+                  <span>Explicar hallazgos y proponer posibles correcciones.</span><button type="button" class="help-link help-action" data-help="ai">Ver ayuda</button>
                 </div>
                 <div class="control-row">
                   <span><strong>Entorno local</strong><small>Docker Compose</small></span>
@@ -159,7 +159,7 @@
           <h3>Antes de utilizar el panel</h3>
           <ol>
             <li>Copia <code>.devsecops/dashboard.env.example</code> como <code>.devsecops/dashboard.env</code>.</li>
-            <li>Indica el repositorio y los tokens de GitHub e IA en ese único fichero.</li>
+            <li>Indica el repositorio, la rama y los tokens de GitHub e IA en ese fichero.</li>
             <li>No subas <code>.devsecops/dashboard.env</code> a Git.</li>
           </ol>
           <p>La IA ya está desplegada y no requiere configurar modelos. Consulta <code>docs/devsecops/dashboard.md</code> para ver todos los pasos.</p>

@@ -100,7 +100,7 @@ class InitializerTests(unittest.TestCase):
         self.assertNotIn("Hardening local", html)
         self.assertNotIn("hardening:", script)
         self.assertIn("Ejecutar automáticamente los análisis de seguridad", html)
-        self.assertIn("promocionarse a producción", html)
+        self.assertIn("despliegue de main", html)
         self.assertIn("Si marcas esta opción", html)
         self.assertIn("Archivo o componente relacionado", html)
         self.assertIn("Maven o Gradle", script)

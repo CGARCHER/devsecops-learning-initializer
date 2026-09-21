@@ -31,7 +31,7 @@ COMMON_PLAN_ITEMS = (
     (
         ".github/workflows/authorize-main.yml",
         "Autorización del despliegue de main",
-        "Comprueba el informe del commit y la aceptación del riesgo; se conecta al workflow de despliegue del proyecto.",
+        "Comprueba el informe del commit y, cuando corresponde, la aceptación de los hallazgos. Debe conectarse al workflow de despliegue del proyecto.",
     ),
     (
         ".github/workflows/devsecops.yml",

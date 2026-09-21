@@ -27,7 +27,7 @@ const helpContent = {
   sast: {
     title: 'Análisis estático del código (SAST)',
     tool: 'Herramienta: Semgrep',
-    text: 'Semgrep revisa el código fuente sin ejecutar la aplicación. Aplica reglas que permiten localizar patrones de programación inseguros e indica el archivo y la línea relacionados.',
+    text: 'Semgrep revisa el código Java sin ejecutar la aplicación. Aplica reglas que permiten localizar patrones de programación inseguros e indica el archivo y la línea relacionados.',
     file: 'Código fuente del proyecto',
     student: 'Leer la regla detectada, revisar la línea indicada y repetir el análisis después de corregir el código.'
   },
@@ -50,12 +50,12 @@ const helpContent = {
     tool: 'Componente: evaluación del pipeline',
     text: 'La política agrupa los hallazgos por severidad y toma una decisión común. Los hallazgos críticos, altos y de gravedad desconocida (UNKNOWN) requieren corrección o aceptación explícita del responsable antes de desplegar main. Los errores técnicos del análisis sí bloquean el proceso.',
     file: '.devsecops/engine/security/policy.json',
-    student: 'No interpretar un pipeline correcto como seguridad absoluta: significa que se ha cumplido la política definida para el proyecto.'
+    student: 'Una comprobación verde indica que el análisis ha terminado sin errores técnicos. Revisa también el estado de seguridad para saber si hay que aceptar los hallazgos antes de desplegar main.'
   },
   rulesets: {
     title: 'Protección de ramas en GitHub',
     tool: 'Herramienta: GitHub Rulesets',
-    text: 'El inicializador prepara dos rulesets para develop y main. Exigen pull request y el check de seguridad, pero no se activan automáticamente: deben importarse y revisarse desde la configuración del repositorio.',
+    text: 'El inicializador prepara dos rulesets para develop y main. Exigen una pull request y que el análisis termine sin errores técnicos, pero no se activan automáticamente: deben importarse y revisarse desde la configuración del repositorio.',
     file: '.github/rulesets/*.json y SECURITY_SETUP.md',
     student: 'Importar cada ruleset manualmente y comprobar mediante una pull request que la protección funciona.'
   },
@@ -69,7 +69,7 @@ const helpContent = {
   ai: {
     title: 'Remediación asistida por IA',
     tool: 'Componente: API de remediación desplegada',
-    text: 'La API ya está desplegada y no requiere instalar ni configurar modelos. Al solicitar ayuda, el panel envía a la API el hallazgo seleccionado y el contexto mínimo necesario. No deben incluirse credenciales ni información sensible.',
+    text: 'La API ya está desplegada y no requiere instalar ni configurar modelos. Al pulsar «Cómo corregirlo», el panel envía a la API el hallazgo seleccionado y el contexto disponible. La IA lo explica y propone un cambio de código cuando dispone de información suficiente. No deben incluirse credenciales ni información sensible.',
     file: '.devsecops/dashboard.env',
     student: 'Entender la propuesta, comprobar que corresponde al archivo real, aplicarla manualmente y volver a ejecutar los análisis.'
   },
@@ -240,7 +240,7 @@ function renderFacts(facts) {
 }
 
 function renderChanges(changes) {
-  const labels = {add: 'Archivo nuevo', modify: 'Archivo actualizado', not_applicable: 'Control no aplicable'};
+  const labels = {add: 'Se añadirá', modify: 'Se actualizará', not_applicable: 'Control no aplicable'};
   document.querySelector('#changes').innerHTML = changes.map(change => `
     <article class="change ${change.kind}">
       <div><span class="badge">${labels[change.kind]}</span><div class="path">${escapeHtml(change.path)}${change.line ? ` · línea ${change.line}` : ''}</div></div>
