@@ -33,20 +33,40 @@ La configuración permite trabajar solo: no exige aprobaciones de otra persona. 
 
 El inicializador incluye `.github/workflows/authorize-main.yml`. Comprueba el último análisis del commit de `main`, independientemente del entorno de destino. No despliega ni configura Dokploy u otro proveedor.
 
-En tu workflow de despliegue, añade este trabajo bajo `jobs`:
+En tu workflow de despliegue, añade el disparador al terminar el análisis, la casilla y el trabajo de seguridad (conserva los demás inputs y trabajos). Publica este workflow en la rama predeterminada:
 
 ```yaml
+on:
+  workflow_run:
+    workflows: ["Seguridad DevSecOps"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      accept_risk:
+        description: Acepto los hallazgos del análisis
+        type: boolean
+        default: false
+
+jobs:
   seguridad:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     permissions:
       contents: read
       actions: read
-      pull-requests: read
     uses: ./.github/workflows/authorize-main.yml
+    with:
+      accept_risk: ${{ inputs.accept_risk }}
 ```
 
-En el trabajo que realiza el despliegue añade `needs: [seguridad]`. Si ya tiene dependencias, conserva las anteriores y añade `seguridad`. Mantén la condición normal de éxito: no utilices `always()` ni `continue-on-error` para eludir el resultado.
+En el trabajo que realiza el despliegue añade `needs: [seguridad]` e `if: needs.seguridad.outputs.allowed == 'true'`. Si ya tiene dependencias o condiciones, conserva las anteriores y añade estas comprobaciones. No utilices `always()` ni `continue-on-error` para eludir el resultado. Sin comprobar `allowed`, el trabajo podría continuar aunque la autorización automática deje los hallazgos pendientes de aceptación.
 
-El despliegue debe utilizar exactamente `${{ github.sha }}`, no volver a resolver la punta de `main`. Todos los despliegues de `main` deben pasar por esta comprobación; un autodespliegue independiente del proveedor no queda protegido. En otras ramas, este workflow termina sin exigir aceptación, para permitir las pruebas de desarrollo.
+El despliegue y su checkout deben utilizar exactamente `${{ needs.seguridad.outputs.sha }}`, no volver a resolver la punta de `main`. En una ejecución automática, `github.sha` puede ser distinto del commit analizado. Todos los despliegues de `main` deben pasar por esta comprobación; un autodespliegue independiente del proveedor no queda protegido. En otras ramas, este workflow permite las pruebas de desarrollo sin exigir aceptación.
 
 Añadir los archivos al ZIP no conecta automáticamente un despliegue existente: hay que incorporar esa dependencia. La conexión sigue el mecanismo de [workflows reutilizables de GitHub](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
 
@@ -54,18 +74,12 @@ Añadir los archivos al ZIP no conecta automáticamente un despliegue existente:
 
 Antes de fusionar la PR, revisa los hallazgos y decide cuáles corregir. Después de fusionarla, espera al análisis del commit final de `main`:
 
-- `APPROVED`: no requiere aceptación adicional.
-- `BLOCKED` o `REVIEW_REQUIRED`: requiere un comentario de aceptación.
+- `APPROVED`: el despliegue continúa automáticamente al terminar el análisis del push a `main`, si has conectado el workflow como indica el apartado anterior.
+- `BLOCKED` o `REVIEW_REQUIRED`: requiere marcar la casilla de aceptación.
 - Error técnico, informe ausente o análisis en curso: el despliegue se detiene.
 
-Si se decide aceptar el riesgo, quien fusionó la PR debe añadir en esa misma PR un comentario nuevo, después del análisis:
+Si decides continuar con los hallazgos, abre **Run workflow**, selecciona `main` y marca **Acepto los hallazgos del análisis**. La casilla está desmarcada por defecto y solo permite aceptar riesgos en una ejecución manual.
 
-```text
-Acepto el riesgo de SHA_COMPLETO: justificación.
-```
+Espera a que terminen todos los analizadores, incluido `container`, y se genere el informe final antes de lanzar el despliegue manual. Poder fusionar una PR no sustituye el análisis del nuevo commit de `main`.
 
-Sustituye `SHA_COMPLETO` por los 40 caracteres del commit final de `main`. La persona debe conservar permisos de escritura, mantenimiento o administración. Puede ser el propio autor si trabaja solo; en equipo será la persona responsable que fusionó la PR.
-
-Explica el motivo y, si procede, cuándo revisarás los hallazgos. La fecha de revisión es una indicación para el equipo y no se comprueba automáticamente. El comentario no debe editarse: otro commit o un análisis nuevo requiere otra aceptación. Los hallazgos y su estado original se conservan en el informe.
-
-Después ejecuta el workflow de despliegue desde `main`. Comprueba que un riesgo sin aceptar se detiene y que una aceptación válida permite continuar con ese mismo commit.
+No necesitas copiar el SHA ni escribir comentarios. El workflow comprueba automáticamente el commit y registra en su resumen quién lanzó la ejecución, el commit y el resultado del análisis. Los hallazgos se conservan en el informe.

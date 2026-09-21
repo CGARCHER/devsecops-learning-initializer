@@ -71,9 +71,9 @@ La interfaz admite proyectos Maven y Gradle. Si no existe Dockerfile, el anális
 3. Abre **Actions** y revisa la primera ejecución de `Seguridad DevSecOps`.
 4. Sigue `SECURITY_SETUP.md` para importar manualmente los *rulesets* de `develop` y `main`.
 5. Revisa los hallazgos, corrige lo necesario y repite el análisis antes de integrar el cambio.
-6. Conecta `authorize-main.yml` a tu workflow de despliegue siguiendo el `SECURITY_SETUP.md` generado. El inicializador no configura el proveedor de despliegue.
+6. Conecta `authorize-main.yml` a tu workflow de despliegue siguiendo el `SECURITY_SETUP.md` generado. Comprueba su salida `allowed` y despliega el commit de su salida `sha`. Con el disparador indicado, `APPROVED` permite continuar automáticamente al terminar el análisis de un push a `main`. El inicializador no configura el proveedor de despliegue.
 
-El check obligatorio `security / aggregate` bloquea los errores técnicos, pero permite integrar con hallazgos revisados. Antes de desplegar `main`, los estados `BLOCKED` y `REVIEW_REQUIRED` exigen una aceptación explícita del riesgo por quien fusionó la PR, vinculada al commit y posterior al último análisis. Es válido trabajar solo o en equipo. El entorno de destino no cambia esta comprobación.
+El check obligatorio `security / aggregate` bloquea los errores técnicos, pero permite integrar con hallazgos revisados. Antes de desplegar `main`, los estados `BLOCKED` y `REVIEW_REQUIRED` exigen una aceptación explícita del riesgo mediante una casilla al lanzar manualmente el despliegue. El workflow comprueba el análisis del mismo commit. Es válido trabajar solo o en equipo. El entorno de destino no cambia esta comprobación.
 
 El workflow utiliza el token temporal de GitHub Actions. No hace falta configurar un token personal para ejecutar los análisis.
 

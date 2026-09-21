@@ -12,38 +12,15 @@ const accepted = '2026-09-21T15:05:00Z';
 // Los informes son temporales y GitHub se simula: estas pruebas no despliegan nada.
 async function scenario(options = {}) {
   const reportDir = fs.mkdtempSync(path.join(os.tmpdir(), 'deployment-approval-'));
-  const context = {sha, ref: options.ref || 'refs/heads/main', repo: {owner: 'owner', repo: 'repo'}};
-  const comments = options.comments || [{
-    user: {login: 'responsable', type: 'User'}, created_at: accepted, updated_at: accepted,
-    body: `Acepto el riesgo de ${sha}: Práctica aislada; revisar el 22 de septiembre.`,
-    html_url: 'https://github.com/owner/repo/pull/7#issuecomment-123',
-  }];
-  if (options.comment) Object.assign(comments[0], options.comment);
-  let commentRequests = 0;
-  const github = {rest: {
-    actions: {
-      async getWorkflowRun() { return {data: {head_sha: sha, head_branch: 'main', event: 'push',
-        status: 'completed', conclusion: 'success', updated_at: finished, ...options.run}}; },
-      listJobsForWorkflowRun() {},
-    },
-    repos: {
-      listPullRequestsAssociatedWithCommit() {},
-      async getCollaboratorPermissionLevel() {return {data: {permission: options.permission || 'write'}};},
-    },
-    pulls: {async get() {return {data: {number: 7, merged: true, merge_commit_sha: sha,
-      merged_by: {login: 'responsable', type: 'User'}, merged_at: '2026-09-21T14:00:00Z', ...options.pull}};}},
-    issues: {listComments() {}},
-  }};
-  github.paginate = async endpoint => {
-    if (endpoint === github.rest.actions.listJobsForWorkflowRun) {
-      return ['sast', 'sca', 'container', 'aggregate'].map(name => ({name: `security / ${name}`, conclusion: name === options.failedJob ? 'failure' : 'success'}));
-    }
-    if (endpoint === github.rest.repos.listPullRequestsAssociatedWithCommit) {
-      return options.pulls || [{number: 7, merge_commit_sha: sha, base: {ref: 'main', repo: {full_name: 'owner/repo'}}}];
-    }
-    if (endpoint === github.rest.issues.listComments) {commentRequests++; return comments;}
-    throw new Error('Petición inesperada.');
-  };
+  const context = {actor: 'responsable', eventName: options.eventName || 'workflow_dispatch', sha, ref: options.ref || 'refs/heads/main', repo: {owner: 'owner', repo: 'repo'}};
+  const github = {rest: {actions: {
+    async getWorkflowRun() { return {data: {head_sha: sha, head_branch: 'main', event: 'push',
+      status: 'completed', conclusion: 'success', updated_at: finished, ...options.run}}; },
+    listJobsForWorkflowRun() {},
+  }}};
+  github.paginate = async () => ['sast', 'sca', 'container', 'aggregate'].map(name => ({
+    name: 'security / ' + name, conclusion: name === options.failedJob ? 'failure' : 'success',
+  }));
   const messages = [];
   const core = {info() {}, warning(message) {messages.push(message);}, summary: {
     addHeading() {return this;}, addRaw() {return this;}, addLink() {return this;}, async write() {},
@@ -57,45 +34,40 @@ async function scenario(options = {}) {
     for (const [name, document] of Object.entries(reports)) {
       if (name !== options.missing) fs.writeFileSync(path.join(reportDir, name), JSON.stringify(document));
     }
-    await authorize({github, context, core, runId: 42, reportDir});
-    return {messages, commentRequests};
+    const allowed = await authorize({github, context, core, runId: 42, reportDir, acceptRisk: options.acceptRisk ?? true});
+    return {messages, allowed};
   } finally {
     fs.rmSync(reportDir, {recursive: true, force: true});
   }
 }
 
-test('APPROVED permite desplegar sin aceptación adicional', async () => {
-  const result = await scenario({status: 'APPROVED', comments: []});
-  assert.equal(result.commentRequests, 0);
-  assert.deepEqual(result.messages, []);
+test('APPROVED permite desplegar sin marcar la casilla', async () => {
+  assert.deepEqual((await scenario({status: 'APPROVED', acceptRisk: false})).messages, []);
+});
+test('APPROVED autoriza el despliegue automático', async () => {
+  assert.equal((await scenario({status: 'APPROVED', eventName: 'workflow_run', acceptRisk: false})).allowed, true);
 });
 for (const status of ['BLOCKED', 'REVIEW_REQUIRED']) {
-  test(`${status} permite continuar con aceptación del responsable`, async () => {
-    const result = await scenario({status});
-    assert.match(result.messages[0], /responsable.*issuecomment-123/);
-  });
-  test(`${status} se detiene sin aceptación`, async () => {
-    await assert.rejects(scenario({status, comments: []}), /comentario nuevo/);
+  test(`${status} omite el automático incluso si recibe aceptación`, async () => {
+    assert.equal((await scenario({status, eventName: 'workflow_run'})).allowed, false);
+    assert.equal((await scenario({status})).allowed, true);
   });
 }
-test('permite revisión propia: quien fusiona puede ser el autor de la PR', async () => {
-  await scenario({pull: {user: {login: 'responsable'}}});
-});
-test('permite que el responsable del equipo acepte una PR de otro desarrollador', async () => {
-  await scenario({pull: {user: {login: 'desarrollador'}}});
-});
-for (const [name, comment] of [
-  ['otra persona', {user: {login: 'otro', type: 'User'}}],
-  ['un bot', {user: {login: 'responsable', type: 'Bot'}}],
-  ['otro commit', {body: `Acepto el riesgo de ${'b'.repeat(40)}: Motivo.`}],
-  ['sin justificación', {body: `Acepto el riesgo de ${sha}:   `}],
-  ['antes del análisis', {created_at: '2026-09-21T14:30:00Z', updated_at: '2026-09-21T14:30:00Z'}],
-  ['un comentario editado', {updated_at: '2026-09-21T15:10:00Z'}],
-]) {
-  test(`rechaza aceptación de ${name}`, async () => {
-    await assert.rejects(scenario({comment}), /comentario nuevo/);
+for (const status of ['BLOCKED', 'REVIEW_REQUIRED']) {
+  test(`${status} permite continuar con la casilla marcada`, async () => {
+    assert.match((await scenario({status})).messages[0], /responsable/);
+  });
+  test(`${status} se detiene sin marcar la casilla`, async () => {
+    await assert.rejects(scenario({status, acceptRisk: false}), /marca/);
   });
 }
+test('una cadena no equivale a la aceptación booleana', async () => {
+  await assert.rejects(scenario({acceptRisk: 'false'}), /marca/);
+  await assert.rejects(scenario({acceptRisk: 'true'}), /marca/);
+});
+test('la aceptación requiere una ejecución manual', async () => {
+  await assert.rejects(scenario({eventName: 'push'}), /marca/);
+});
 
 // Ejecuta el paso real del workflow: un análisis nuevo pendiente no puede ocultarse
 // seleccionando una ejecución anterior que ya hubiera terminado.
@@ -127,12 +99,27 @@ for (const [name, runs, expectedId] of [
     assert.equal(failed, expectedId === undefined);
   });
 }
-test('un nuevo análisis invalida la aceptación anterior', async () => {
-  await assert.rejects(scenario({run: {updated_at: '2026-09-21T16:00:00Z'}}), /comentario nuevo/);
-});
-test('rechaza la aceptación si el responsable perdió sus permisos', async () => {
-  await assert.rejects(scenario({permission: 'read'}), /permisos/);
-});
+for (const [name, triggerChanges, mainSha, latestId, allowed] of [
+  ['acepta el análisis actual', {}, sha, 42, true],
+  ['rechaza una punta nueva de main', {}, 'b'.repeat(40), 42, false],
+  ['rechaza un análisis anterior', {}, sha, 43, false],
+  ['rechaza una pull request', {event: 'pull_request'}, sha, 42, false],
+  ['rechaza otro repositorio', {head_repository: {full_name: 'other/repo'}}, sha, 42, false],
+]) {
+  test(`el automático ${name}`, async () => {
+    let selected;
+    let failed = false;
+    const trigger = {id: 42, head_branch: 'main', event: 'push', conclusion: 'success', head_repository: {full_name: 'owner/repo'}, ...triggerChanges};
+    const github = {rest: {
+      repos: {async getBranch() {return {data: {commit: {sha: mainSha}}};}},
+      actions: {async listWorkflowRuns() {return {data: {workflow_runs: [{...trigger, id: latestId, status: 'completed'}]}};}},
+    }};
+    const core = {info() {}, setFailed() {failed = true;}, setOutput(name, value) {selected = Number(value);}};
+    await selectRun(github, {repo: {owner: 'owner', repo: 'repo'}, sha, eventName: 'workflow_run', payload: {workflow_run: trigger}}, core);
+    assert.equal(selected, allowed ? 42 : undefined);
+    assert.equal(failed, !allowed);
+  });
+}
 for (const [name, options, message] of [
   ['informe de otro commit', {findings: {commit: 'b'.repeat(40)}}, /commit de main/],
   ['rama distinta de main', {ref: 'refs/heads/develop'}, /commit de main/],
@@ -145,8 +132,6 @@ for (const [name, options, message] of [
   ['análisis fallido', {run: {conclusion: 'failure'}}, /no ha terminado/],
   ['análisis todavía en curso', {run: {status: 'in_progress'}}, /no ha terminado/],
   ['ejecución de otro commit', {run: {head_sha: 'b'.repeat(40)}}, /no corresponde/],
-  ['commit sin PR', {pulls: []}, /No se encuentra la PR/],
-  ['PR sin fusionar', {pull: {merged: false}}, /PR fusionada/],
 ]) {
   test(`detiene el despliegue ante ${name}`, async () => {
     await assert.rejects(scenario(options), message);
