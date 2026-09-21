@@ -24,4 +24,6 @@ El alumno selecciona un hallazgo, consulta la evidencia y prepara una correcció
 
 ## 6. Promover
 
-El recorrido recomendado es `feature/* → develop → main → producción`. La promoción utiliza el mismo SHA que ha superado la política. Un estado `BLOCKED`, `REVIEW_REQUIRED` o `ANALYSIS_ERROR` no se despliega.
+El recorrido recomendado es `feature/* → develop → main`. El destino puede ser cualquier entorno: lo que se controla es el commit de `main` que se despliega. El workflow de despliegue debe llamar a `authorize-main.yml` y depender de su resultado, como explica el `SECURITY_SETUP.md` generado.
+
+Un estado `APPROVED` permite continuar. Para `BLOCKED` o `REVIEW_REQUIRED`, quien fusionó la PR debe aceptar el riesgo mediante un comentario nuevo con el SHA completo y una justificación, después del último análisis de ese commit. Puede ser el propio alumno si trabaja solo. Los errores técnicos, informes ausentes o análisis incompletos detienen el despliegue. Aceptar el riesgo no elimina los hallazgos.

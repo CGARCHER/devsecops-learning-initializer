@@ -48,7 +48,7 @@ const helpContent = {
   policy: {
     title: 'Política de seguridad',
     tool: 'Componente: evaluación del pipeline',
-    text: 'La política agrupa los hallazgos por severidad y toma una decisión común. La configuración generada bloquea los hallazgos críticos y exige revisar los altos y los de gravedad desconocida (UNKNOWN).',
+    text: 'La política agrupa los hallazgos por severidad y toma una decisión común. Los hallazgos críticos, altos y de gravedad desconocida (UNKNOWN) requieren corrección o aceptación explícita del responsable antes de desplegar main. Los errores técnicos del análisis sí bloquean el proceso.',
     file: '.devsecops/engine/security/policy.json',
     student: 'No interpretar un pipeline correcto como seguridad absoluta: significa que se ha cumplido la política definida para el proyecto.'
   },

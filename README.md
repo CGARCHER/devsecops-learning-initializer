@@ -33,6 +33,7 @@ Se añade en todos los proyectos generados:
 | Elemento | Para qué sirve |
 | --- | --- |
 | `.github/workflows/devsecops.yml` | Ejecuta los análisis en GitHub Actions. |
+| `.github/workflows/authorize-main.yml` | Comprueba el análisis del commit y la aceptación del riesgo antes de desplegar `main`. |
 | `.devsecops/engine/` | Contiene el perfil de Spring Boot, las reglas, la normalización y la política. |
 | `.devsecops/config.yml` | Registra la configuración detectada para el proyecto. |
 | `.devsecops/manifest.json` | Guarda la versión del paquete incorporado. |
@@ -69,7 +70,10 @@ La interfaz admite proyectos Maven y Gradle. Si no existe Dockerfile, el anális
 2. Publica el proyecto en GitHub. El workflow es autónomo y no necesita acceder al repositorio del inicializador.
 3. Abre **Actions** y revisa la primera ejecución de `Seguridad DevSecOps`.
 4. Sigue `SECURITY_SETUP.md` para importar manualmente los *rulesets* de `develop` y `main`.
-5. Corrige los hallazgos en una rama y repite el análisis antes de integrar el cambio.
+5. Revisa los hallazgos, corrige lo necesario y repite el análisis antes de integrar el cambio.
+6. Conecta `authorize-main.yml` a tu workflow de despliegue siguiendo el `SECURITY_SETUP.md` generado. El inicializador no configura el proveedor de despliegue.
+
+El check obligatorio `security / aggregate` bloquea los errores técnicos, pero permite integrar con hallazgos revisados. Antes de desplegar `main`, los estados `BLOCKED` y `REVIEW_REQUIRED` exigen una aceptación explícita del riesgo por quien fusionó la PR, vinculada al commit y posterior al último análisis. Es válido trabajar solo o en equipo. El entorno de destino no cambia esta comprobación.
 
 El workflow utiliza el token temporal de GitHub Actions. No hace falta configurar un token personal para ejecutar los análisis.
 
@@ -145,9 +149,10 @@ devsecops-init generate ruta/al/proyecto salida.zip
 
 ```bash
 python -m unittest discover -s tests -v
+node --test tests/test_authorize_deployment.cjs
 ```
 
-La versión `0.9.4` incluye veinte pruebas automatizadas. Entre otros casos, comprueban Maven, la generación del workflow y las guías, el panel opcional, la ausencia de Dockerfile, la protección frente a ZIP Slip, la gestión de versiones, la limpieza de sesiones y el flujo web de carga y descarga.
+Las pruebas comprueban Maven, la generación de los workflows y las guías, el panel opcional, la ausencia de Dockerfile, la protección frente a ZIP Slip, la gestión de versiones, la limpieza de sesiones y el flujo web de carga y descarga. Las pruebas de autorización utilizan Node.js y simulan GitHub: comprueban la aceptación del responsable, el commit y los errores de análisis sin realizar despliegues.
 
 ## Arquitectura ampliable
 

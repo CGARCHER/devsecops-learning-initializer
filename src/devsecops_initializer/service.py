@@ -29,6 +29,11 @@ ENGINE_DIRECTORIES = ("profiles", "scripts", "security")
 # path, título y explicación que verá el alumno antes de generar el ZIP.
 COMMON_PLAN_ITEMS = (
     (
+        ".github/workflows/authorize-main.yml",
+        "Autorización del despliegue de main",
+        "Comprueba el informe del commit y la aceptación del riesgo; se conecta al workflow de despliegue del proyecto.",
+    ),
+    (
         ".github/workflows/devsecops.yml",
         "Workflow DevSecOps autónomo",
         "Ejecuta SAST, SCA y análisis de contenedores sin depender de otro repositorio.",
@@ -41,7 +46,7 @@ COMMON_PLAN_ITEMS = (
     (
         ".github/rulesets/main-protection.json",
         "Protección de la rama main",
-        "Prepara una regla que, una vez importada en GitHub, exige una pull request y un análisis de seguridad favorable.",
+        "Prepara una regla que, una vez importada en GitHub, exige una pull request y un análisis sin errores técnicos; los hallazgos se revisan antes de desplegar.",
     ),
     (
         ".github/rulesets/develop-protection.json",
@@ -176,6 +181,7 @@ class InitializerService:
         facts = plan.facts
         return {
             ".github/workflows/devsecops.yml": cls._workflow_text(),
+            ".github/workflows/authorize-main.yml": (cls._engine_source() / "workflows/authorize-main.yml").read_text(encoding="utf-8"),
             ".github/rulesets/main-protection.json": ruleset_text("main"),
             ".github/rulesets/develop-protection.json": ruleset_text("develop"),
             ".devsecops/config.yml": config_text(facts, include_dashboard),

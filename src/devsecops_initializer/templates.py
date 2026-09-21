@@ -15,7 +15,7 @@ def _template(name: str) -> str:
 
 def ruleset_text(branch: str) -> str:
     """Crea el ruleset mínimo para proteger main o develop."""
-    include = ["~DEFAULT_BRANCH"] if branch == "main" else ["refs/heads/develop"]
+    include = [f"refs/heads/{branch}"]
     ruleset = {
         "name": f"Protección de {branch} con DevSecOps",
         "target": "branch",
@@ -28,7 +28,7 @@ def ruleset_text(branch: str) -> str:
                 "type": "pull_request",
                 "parameters": {
                     "allowed_merge_methods": ["merge", "squash", "rebase"],
-                    "dismiss_stale_reviews_on_push": False,
+                    "dismiss_stale_reviews_on_push": True,
                     "require_code_owner_review": False,
                     "require_last_push_approval": False,
                     "required_approving_review_count": 0,

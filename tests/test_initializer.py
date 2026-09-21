@@ -54,9 +54,11 @@ class InitializerTests(unittest.TestCase):
             names = set(archive.namelist())
             expected = {
                 ".github/workflows/devsecops.yml",
+                ".github/workflows/authorize-main.yml",
                 ".github/rulesets/main-protection.json",
                 ".github/rulesets/develop-protection.json",
                 ".devsecops/engine/scripts/normalize_findings.py",
+                ".devsecops/engine/scripts/authorize_deployment.cjs",
                 ".devsecops/engine/security/semgrep.yml",
                 "docs/devsecops/guia-del-estudiante.md",
                 "SECURITY_SETUP.md",
@@ -66,6 +68,15 @@ class InitializerTests(unittest.TestCase):
             ruleset = json.loads(archive.read(".github/rulesets/main-protection.json"))
             checks = next(rule for rule in ruleset["rules"] if rule["type"] == "required_status_checks")
             self.assertEqual("security / aggregate", checks["parameters"]["required_status_checks"][0]["context"])
+            self.assertEqual(["refs/heads/main"], ruleset["conditions"]["ref_name"]["include"])
+            review = next(rule["parameters"] for rule in ruleset["rules"] if rule["type"] == "pull_request")
+            self.assertEqual(0, review["required_approving_review_count"])
+            self.assertTrue(review["dismiss_stale_reviews_on_push"])
+            authorization = archive.read(".github/workflows/authorize-main.yml").decode()
+            self.assertIn("workflow_call:", authorization)
+            self.assertIn("workflow_id: 'devsecops.yml'", authorization)
+            self.assertIn("devsecops-security-report-${{ github.sha }}", authorization)
+            self.assertNotIn("DOKPLOY", authorization)
             workflow = archive.read(".github/workflows/devsecops.yml").decode()
             self.assertIn(f"Paquete DevSecOps: {DEVSECOPS_VERSION}", workflow)
             self.assertIn(".devsecops/engine/scripts/normalize_findings.py", workflow)
