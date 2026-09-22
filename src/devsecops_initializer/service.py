@@ -35,6 +35,16 @@ COMMON_PLAN_ITEMS = (
         "Comprueba el informe del commit y, cuando corresponde, la aceptación de los hallazgos. Debe conectarse al workflow de despliegue del proyecto.",
     ),
     (
+        ".github/workflows/deploy-dokploy.yml",
+        "Despliegue opcional en Dokploy",
+        "Conecta la autorización de main con Dokploy. Permanece inactivo hasta configurar y habilitar la integración siguiendo SECURITY_SETUP.md.",
+    ),
+    (
+        ".devsecops/engine/scripts/deploy_dokploy.cjs",
+        "Envío del commit autorizado a Dokploy",
+        "Fija el commit autorizado con una etiqueta y espera a que Dokploy confirme su despliegue. No configura credenciales ni crea el servicio.",
+    ),
+    (
         ".github/workflows/devsecops.yml",
         "Workflow DevSecOps autónomo",
         "Ejecuta SAST, SCA y análisis de contenedores sin depender de otro repositorio.",
@@ -66,8 +76,8 @@ COMMON_PLAN_ITEMS = (
     ),
     (
         "SECURITY_SETUP.md",
-        "Configuración de GitHub",
-        "Explica cómo importar manualmente los rulesets sin utilizar un token administrativo.",
+        "Configuración de GitHub y Dokploy",
+        "Explica los rulesets y, paso a paso, las variables, el secreto, el Compose y la activación del despliegue opcional en Dokploy.",
     ),
     (
         ".devsecops/manifest.json",
@@ -201,6 +211,7 @@ class InitializerService:
         return {
             ".github/workflows/devsecops.yml": cls._workflow_text(),
             ".github/workflows/authorize-main.yml": (cls._engine_source() / "workflows/authorize-main.yml").read_text(encoding="utf-8"),
+            ".github/workflows/deploy-dokploy.yml": (cls._engine_source() / "workflows/deploy-dokploy.yml").read_text(encoding="utf-8"),
             ".github/rulesets/main-protection.json": ruleset_text("main"),
             ".github/rulesets/develop-protection.json": ruleset_text("develop"),
             ".devsecops/config.yml": config_text(facts, include_dashboard),

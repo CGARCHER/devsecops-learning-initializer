@@ -1,0 +1,74 @@
+name: Desplegar en Dokploy
+
+on:
+  workflow_run:
+    workflows: ["Seguridad DevSecOps"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      accept_risk:
+        description: Acepto los hallazgos del análisis (solo main)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: dokploy-deploy-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  authorize:
+    # Reutiliza la comprobación del informe y la aceptación de main.
+    if: >-
+      vars.DOKPLOY_DEPLOY_ENABLED == 'true' && (
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository))
+    uses: ./.github/workflows/authorize-main.yml
+    with:
+      accept_risk: ${{ inputs.accept_risk || false }}
+
+  deploy:
+    needs: authorize
+    permissions:
+      contents: write
+      actions: read
+    if: needs.authorize.outputs.allowed == 'true'
+    env:
+      DOKPLOY_DEPLOY_ENABLED: ${{ vars.DOKPLOY_DEPLOY_ENABLED }}
+      DOKPLOY_COMPOSE_PATH: ${{ vars.DOKPLOY_COMPOSE_PATH || './compose.yml' }}
+      DEPLOY_SHA: ${{ needs.authorize.outputs.sha }}
+      DEPLOY_REF: ${{ github.event_name == 'workflow_run' && 'refs/heads/main' || github.ref }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+          persist-credentials: false
+      - name: Comprobar configuracion
+        env:
+          DOKPLOY_URL: ${{ vars.DOKPLOY_URL }}
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          DOKPLOY_COMPOSE_ID: ${{ vars.DOKPLOY_COMPOSE_ID }}
+        run: |
+          test -n "$DOKPLOY_URL" || { echo "::error::Falta la variable DOKPLOY_URL. Consulta SECURITY_SETUP.md."; exit 1; }
+          test -n "$DOKPLOY_API_KEY" || { echo "::error::Falta el secreto DOKPLOY_API_KEY. Consulta SECURITY_SETUP.md."; exit 1; }
+          test -n "$DOKPLOY_COMPOSE_ID" || { echo "::error::Falta la variable DOKPLOY_COMPOSE_ID. Consulta SECURITY_SETUP.md."; exit 1; }
+      - name: Desplegar el commit y esperar a Dokploy
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          DOKPLOY_URL: ${{ vars.DOKPLOY_URL }}
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          DOKPLOY_COMPOSE_ID: ${{ vars.DOKPLOY_COMPOSE_ID }}
+        with:
+          script: |
+            const deploy = require('./.devsecops/engine/scripts/deploy_dokploy.cjs');
+            await deploy({github, context: {...context, repo: context.repo, sha: process.env.DEPLOY_SHA, ref: process.env.DEPLOY_REF}, core});

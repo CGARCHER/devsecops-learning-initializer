@@ -164,10 +164,16 @@ devsecops-init generate ruta/al/proyecto salida.zip
 
 ```bash
 python -m unittest discover -s tests -v
-node --test tests/test_authorize_deployment.cjs
+node --test tests/test_authorize_deployment.cjs tests/test_deploy_dokploy.cjs tests/test_dokploy_workflow.cjs tests/test_upload_ui.cjs
 ```
 
 Las pruebas comprueban Maven, la generación de los workflows y las guías, el panel opcional, la ausencia de Dockerfile, la protección frente a ZIP Slip, la gestión de versiones, la limpieza de sesiones y el flujo web de carga y descarga. Las pruebas de autorización utilizan Node.js y simulan GitHub: comprueban la aceptación del responsable, el commit y los errores de análisis sin realizar despliegues.
+
+## Despliegue opcional en Dokploy
+
+El ZIP incluye `deploy-dokploy.yml` y `.devsecops/engine/scripts/deploy_dokploy.cjs`, con explicaciones en el plan de archivos. No se añaden opciones a la interfaz. La integración permanece inactiva hasta configurar `DOKPLOY_DEPLOY_ENABLED=true` en GitHub. `SECURITY_SETUP.md` detalla el servicio Compose, las variables, el secreto, el dominio y las comprobaciones. No se crean servicios ni se solicitan claves en el inicializador.
+
+Las pruebas de despliegue simulan GitHub y Dokploy: no realizan despliegues reales ni necesitan secretos.
 
 ## Arquitectura ampliable
 
