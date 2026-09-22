@@ -75,7 +75,7 @@
           <details class="control-group" open>
             <summary class="selection-row optional-selection">
               <input id="include-dashboard" type="checkbox" aria-label="Incluir panel local y remediación con IA">
-              <span><strong>Panel local y remediación con IA</strong><small>Opcional. El panel se ejecuta localmente y consulta la API de IA configurada.</small></span>
+              <span><strong>Panel local y remediación con IA</strong><small>Opcional. Si el proyecto ya incluye el panel generado, se conserva y se actualiza.</small></span>
             </summary>
 
             <div class="optional-controls" id="optional-controls">
@@ -139,7 +139,7 @@
       <section class="result-section">
         <div class="section-heading">
           <span class="section-number">3</span>
-          <div><h2>Revisa los archivos</h2><p>Cada elemento indica qué se incorpora y para qué se utiliza.</p></div>
+          <div><h2>Revisa los archivos</h2><p>Comprueba qué se añade, sustituye o elimina de la copia.</p></div>
         </div>
         <div id="changes"></div>
       </section>
@@ -155,10 +155,11 @@
           <div><h2>Descarga la copia</h2><p>Contiene el proyecto original y los archivos revisados en el paso anterior.</p></div>
         </div>
         <button id="generate" disabled>Descargar proyecto preparado</button>
+        <p>Extrae el ZIP en una carpeta vacía. Copiarlo encima del proyecto anterior no elimina los archivos retirados. Conserva aparte tu carpeta .git y tu configuración local.</p>
         <aside id="dashboard-next-steps" class="next-steps" hidden>
           <h3>Antes de utilizar el panel</h3>
           <ol>
-            <li>Copia <code>.devsecops/dashboard.env.example</code> como <code>.devsecops/dashboard.env</code>.</li>
+            <li>Si todavía no tienes configuración, copia <code>.devsecops/dashboard.env.example</code> como <code>.devsecops/dashboard.env</code>. Si actualizas, conserva tu fichero local.</li>
             <li>Indica el repositorio, la rama y los tokens de GitHub e IA en ese fichero.</li>
             <li>No subas <code>.devsecops/dashboard.env</code> a Git.</li>
           </ol>

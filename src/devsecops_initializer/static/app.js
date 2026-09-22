@@ -163,7 +163,7 @@ async function analyzeProject() {
     if (!response.ok) throw new Error(data.error || 'No se ha podido analizar el proyecto.');
 
     // El servidor conserva temporalmente el ZIP y devuelve una sesión de un solo uso.
-    dashboardIncluded = requestedDashboard;
+    dashboardIncluded = data.changes.some(change => change.path === '.devsecops/dashboard');
     renderPlan(data);
   } catch (error) {
     showError(controller.signal.aborted
@@ -260,7 +260,7 @@ function renderFacts(facts) {
 }
 
 function renderChanges(changes) {
-  const labels = {add: 'Se añadirá', modify: 'Se actualizará', not_applicable: 'Control no aplicable'};
+  const labels = {add: 'Se añadirá', modify: 'Se sustituirá', delete: 'Se eliminará', not_applicable: 'Control no aplicable'};
   document.querySelector('#changes').innerHTML = changes.map(change => `
     <article class="change ${change.kind}">
       <div><span class="badge">${labels[change.kind]}</span><div class="path">${escapeHtml(change.path)}${change.line ? ` · línea ${change.line}` : ''}</div></div>

@@ -22,6 +22,7 @@ from .templates import (
     student_guide,
 )
 from .versioning import DEVSECOPS_VERSION, inspect_version
+from .updates import check_legacy_references, clean_package, legacy_files
 
 
 ENGINE_DIRECTORIES = ("profiles", "scripts", "security")
@@ -112,9 +113,19 @@ class InitializerService:
         profile, confidence = self.registry.resolve(root)
         facts = profile.inspect(root, confidence)
 
+        removed = legacy_files(root)
+        check_legacy_references(root, removed)
+        # Un panel ya instalado se actualiza aunque no se marque para añadirlo.
+        include_dashboard = self._has_dashboard(root, include_dashboard, removed)
+
         changes = self._changes_for(root, COMMON_PLAN_ITEMS)
         if include_dashboard:
             changes.extend(self._changes_for(root, DASHBOARD_PLAN_ITEMS))
+
+        changes.extend(Change(
+            "delete", path, "Archivo antiguo de DevSecOps",
+            "Se elimina de la copia porque lo sustituye el paquete .devsecops.",
+        ) for path in removed)
 
         changes.extend(profile.plan(facts))
         return AnalysisPlan(
@@ -134,24 +145,22 @@ class InitializerService:
         return [cls._change(root, path, title, reason) for path, title, reason in items]
 
     @staticmethod
+    def _has_dashboard(root: Path, requested: bool, removed: list[str]) -> bool:
+        return (requested or (root / ".devsecops/dashboard").is_dir()
+                or "docker/security-dashboard/Dockerfile" in removed)
+
+    @staticmethod
     def _change(root: Path, relative: str, title: str, reason: str) -> Change:
         target = root / relative
         if target.exists():
-            if target.is_dir():
-                before = "Carpeta existente"
-            else:
-                lines = target.read_text(encoding="utf-8", errors="ignore").splitlines()
-                before = lines[0] if lines else "(archivo vacío)"
             return Change(
                 "modify",
                 relative,
                 title,
-                reason,
-                line=1,
-                before=before,
-                after="Contenido regenerado por el inicializador",
+                reason + (" Se sustituye la carpeta completa, retirando los archivos de versiones anteriores."
+                          if target.is_dir() else " Se sustituye el archivo completo."),
             )
-        return Change("add", relative, title, reason, line=1, after="Archivo nuevo")
+        return Change("add", relative, title, reason)
 
     def generate_zip(self, root: Path, include_dashboard: bool = False) -> bytes:
         """Genera una copia ZIP y mantiene intacto el proyecto original."""
@@ -160,14 +169,24 @@ class InitializerService:
             raise ValueError(
                 "El proyecto utiliza una versión DevSecOps más reciente que este inicializador."
             )
+        removed = legacy_files(root)
+        include_dashboard = self._has_dashboard(root, include_dashboard, removed)
         with tempfile.TemporaryDirectory(prefix="devsecops-output-") as temporary:
             workspace = Path(temporary) / "project"
             # Se trabaja sobre una copia temporal para no sobrescribir archivos del alumno.
             shutil.copytree(root, workspace, ignore=shutil.ignore_patterns(*IGNORED_PROJECT_ITEMS))
+            clean_package(workspace, removed)
             generated = self._generated_files(plan, include_dashboard)
             generated.update(self._engine_files())
             if include_dashboard:
                 generated.update(self._dashboard_files())
+                # Conserva también las exclusiones que el alumno haya añadido.
+                ignore = root / ".devsecops/.gitignore"
+                if ignore.is_file():
+                    content = ignore.read_text(encoding="utf-8")
+                    generated[".devsecops/.gitignore"] = content
+                    if "dashboard.env" not in content.splitlines():
+                        generated[".devsecops/.gitignore"] = content.rstrip() + "\ndashboard.env\n"
             self._write_files(workspace, generated)
             return self._compress(workspace)
 
@@ -233,7 +252,7 @@ class InitializerService:
         for relative, content in generated.items():
             target = workspace / relative
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(content, encoding="utf-8")
+            target.write_text(content, encoding="utf-8", newline="\n")
 
     @staticmethod
     def _compress(workspace: Path) -> bytes:

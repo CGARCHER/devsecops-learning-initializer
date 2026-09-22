@@ -12,6 +12,7 @@ El proyecto separa tres decisiones que no deben evolucionar al mismo ritmo:
 - `sessions.py` guarda las sesiones de carga, limita su número y elimina los proyectos caducados. El bloqueo protege el acceso desde peticiones simultáneas.
 - `importer.py` valida y extrae el ZIP. `safe_extract_zip` devuelve un `ExtractedProject` con `root` (el proyecto) y `workspace` (la carpeta temporal completa que debe limpiarse). No se deduce la carpeta temporal a partir del nombre del proyecto.
 - `service.py` coordina el análisis y genera una copia. La carpeta de salida utiliza `TemporaryDirectory` para limpiarse también si la generación falla.
+- `updates.py` limpia las dos carpetas propias del paquete en la copia temporal. El catálogo `template_files/legacy_files.json` identifica por SHA-256 los archivos del prototipo anterior, normalizando los saltos de línea. No se eliminan archivos personalizados por coincidir solo en el nombre. Si una integración todavía referencia un archivo que se retiraría, se pide adaptarla antes de generar la copia.
 - `templates.py` prepara los valores variables y los documentos JSON. Los textos largos y las configuraciones se guardan en `template_files/`, incluida en el paquete instalable.
 
 Las plantillas `config.yml` y `student_guide.md` utilizan campos entre llaves que completa `templates.py`. En esas dos plantillas, una llave literal debe escribirse duplicada. Las demás se cargan sin sustituciones.
@@ -29,10 +30,11 @@ El registro elige el perfil con mayor confianza y rechaza el proyecto si ninguno
 
 ## Modelo de cambios
 
-El plan utiliza tres estados:
+El plan utiliza cuatro estados:
 
 - `add`: el fichero no existía.
-- `modify`: el fichero ya existe; la vista debe enseñar línea, contenido eliminado y contenido añadido.
+- `modify`: el archivo o carpeta ya existe y se sustituye por completo; la vista explica el alcance, sin presentar un resumen como una diferencia línea a línea.
+- `delete`: se elimina un archivo antiguo reconocido de la copia.
 - `not_applicable`: el control no corresponde al proyecto. No equivale a un análisis limpio.
 
 La primera versión siempre devuelve otro ZIP. La escritura directa, la creación de ramas o una pull request quedan fuera del MVP porque requieren una autorización distinta y una revisión explícita.

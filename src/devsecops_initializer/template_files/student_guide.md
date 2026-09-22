@@ -2,6 +2,12 @@
 
 Paquete DevSecOps instalado: **{devsecops_version}**.
 
+## Actualizar el paquete
+
+Para actualizar, vuelve a cargar el proyecto en el inicializador sin incluir tokens ni configuración privada. Se renuevan las carpetas `.devsecops/engine/` y `.devsecops/dashboard/`, retirando los archivos obsoletos. Si ya tienes el panel, se conserva y se actualiza. Las carpetas generales del proyecto no se vacían.
+
+Extrae la copia en una carpeta vacía: copiar el ZIP encima del proyecto anterior no elimina los archivos retirados. Conserva aparte `.git` y tu configuración local, y revisa también las eliminaciones antes de hacer commit.
+
 ## Qué se ha detectado
 
 - Perfil: {facts_profile_name}

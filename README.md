@@ -2,7 +2,7 @@
 
 Aplicación educativa que incorpora controles DevSecOps en un proyecto Spring Boot existente. Recibe un archivo ZIP, analiza su estructura y devuelve una copia independiente con la configuración de seguridad preparada.
 
-- **Versión actual:** `0.9.4`
+- **Versión actual:** `0.9.5`
 - **Aplicación desplegada:** <https://start.cgarcher.dev/>
 
 El proyecto original nunca se modifica. El alumno revisa el plan antes de generar la copia y decide después qué cambios conserva.
@@ -68,13 +68,21 @@ La interfaz admite proyectos Maven y Gradle. Si no existe Dockerfile, el anális
 
 ## Qué hacer después de descargar el ZIP
 
-1. Descomprime la copia y comprueba los archivos añadidos.
+1. Descomprime la copia en una carpeta vacía y comprueba los cambios. No la extraigas encima de la versión anterior: eso conservaría los archivos retirados.
 2. Publica el proyecto en GitHub. El workflow es autónomo y no necesita acceder al repositorio del inicializador.
 3. Abre **Actions** y revisa la primera ejecución de `Seguridad DevSecOps`.
 4. Sigue `SECURITY_SETUP.md` para importar manualmente los *rulesets* de `develop` y `main`.
 5. Revisa los hallazgos, corrige lo necesario y repite el análisis antes de integrar el cambio.
 
 **Con esto ya puedes trabajar con los análisis de seguridad.** No necesitas Dokploy, claves de IA ni etiquetas de despliegue para empezar.
+
+### Actualizar un proyecto preparado
+
+Vuelve a cargar el ZIP del proyecto. El inicializador sustituye por completo `.devsecops/engine/` y `.devsecops/dashboard/`, por lo que no quedan archivos obsoletos dentro de esas carpetas. Un panel ya instalado se conserva y se actualiza aunque no marques la opción para añadirlo. El manifiesto registra la versión nueva; también puedes regenerar la misma versión.
+
+Las carpetas generales `scripts/` y `dashboard/` no se vacían. De la estructura antigua solo se eliminan los archivos cuyo contenido coincide con el catálogo del prototipo anterior. Las copias personalizadas se conservan. Si otra configuración todavía apunta a un archivo antiguo reconocido, se indica qué archivo necesita adaptarse antes de generar el ZIP; el inicializador no reescribe despliegues propios.
+
+La vista previa muestra las eliminaciones y las sustituciones completas. Conserva aparte `.git` y tu configuración local, prepara una carpeta limpia con el ZIP y revisa en Git tanto las modificaciones como las eliminaciones antes de hacer commit. Los informes y `.devsecops/dashboard.env` se conservan si estaban en la entrada, pero **no incluyas tokens ni archivos de configuración privados en el ZIP que subas al servicio público**.
 
 ### Opcional: desplegar la aplicación
 

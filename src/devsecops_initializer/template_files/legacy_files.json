@@ -1,0 +1,20 @@
+{
+  ".github/workflows/security.yml": "0e6d49fda9f801553727f739ce22420d3f242a6ee9f5674b9070464cb1dbf5b7",
+  "dashboard/app.js": "4dfb537ff5fb048267e0f6d1c0875f3ff00c51705263fd69da3a0c151ff61ec1",
+  "dashboard/index.html": "96d4782f2f3147220dbf1b93023cef9b67f08caea29dbf90d7e2ef83ac481968",
+  "dashboard/styles.css": "72062654d48b5182118c8456bed3ff0e98dd5161e4031e3a27e7adbbf20262f6",
+  "docker/security-dashboard/Dockerfile": "0ec0d6098de7e54b335221b11ca914761d9db8276a5c001b2442df6767841352",
+  "scripts/authorize_deployment.cjs": "b3437f76e383a7aa6d8696e34b44edc6755618f5d30cf4a35aa40d8337863df9",
+  "scripts/evaluate_policy.py": "486c5eb42f96aa650b35270318cfd1e659982522b909dbfc8661477914a323a3",
+  "scripts/mock_remediation.py": "979885715129ddca8621ef00acfa777db9a9dde1a1bb1bf4a9c3895c03e01e2a",
+  "scripts/normalize_findings.py": "0367ca670b293e0b633e1ad005a769f50f5b236635a53d9bb8be47132f48fd78",
+  "scripts/project_profile.py": "cbaf68534c85360ba79e7d9478f37ac9b56e117d99f34289245b7bac8228ef05",
+  "scripts/report_api.py": "6a3db79817c50a538cf69dedbbbf7c7285d8b030de8550676927c3630dd34ae1",
+  "scripts/security_report.sh": "a37b644c8d04643e3825894ed10b76f2bae81b75e1257409aab2069c9870caba",
+  "scripts/validate_reports.py": "d747db6e1645aa680cddd8a25f20e2da7ee2a1db9b745bf3fc04e09c209cf549",
+  "security/cyclonedx-init.gradle.kts": "39f696370a8216c5be9121f2489c7cdf8ac825deafcc0fc8aca209d353707b53",
+  "security/policy.json": "52ca44af8459aa6451722790b0f235d4a9db59d0246fa58c18408d55dbed1da8",
+  "security/semgrep.yml": "50492d49a6c7ab4aa43845faf5b98f547e6c3e388ef05a9d2663a5a4c820fb37",
+  "security-fixtures/sast/VulnerableMovieSearch.java": "16ba01a2add61cf0c8c201262ecddddced9ce27b9fb45925cb1a285b40ec4fe7",
+  "security-fixtures/sca/pom.xml": "961f88b2f48aaa7e3257d133523f9bfadb94a2bdd93274ab66c91e8bfa285282"
+}

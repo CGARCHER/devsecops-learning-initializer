@@ -19,7 +19,8 @@ JAVA_VERSION_PATTERNS = (
     r"sourceCompatibility\s*=\s*['\"]?(\d+)",
 )
 
-IGNORED_DIRECTORIES = {".git", "build", "target"}
+# El Dockerfile del panel generado no pertenece a la aplicación Spring Boot.
+IGNORED_DIRECTORIES = {".git", ".devsecops", "build", "target"}
 
 
 class SpringBootProfile(FrameworkProfile):

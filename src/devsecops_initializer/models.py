@@ -7,7 +7,7 @@ from typing import Literal
 from .versioning import VersionStatus
 
 
-ChangeKind = Literal["add", "modify", "not_applicable"]
+ChangeKind = Literal["add", "modify", "delete", "not_applicable"]
 
 
 @dataclass(frozen=True)

@@ -185,7 +185,8 @@ class InitializerTests(unittest.TestCase):
 
         change = next(item for item in plan.changes if item.path == ".devsecops/dashboard")
         self.assertEqual("modify", change.kind)
-        self.assertEqual("Carpeta existente", change.before)
+        self.assertIn("carpeta completa", change.reason)
+        self.assertIsNone(change.before)
 
     def test_builds_a_reviewable_patch_without_modifying_the_project(self):
         project = self.project()
