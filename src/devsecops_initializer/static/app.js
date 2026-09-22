@@ -19,10 +19,24 @@ let dashboardIncluded = false;
 // Las explicaciones se mantienen junto a la interfaz para que puedan leerse
 // antes de generar ningún archivo.
 const helpContent = {
+  base: {
+    title: 'Configuración DevSecOps básica',
+    tool: 'Incluida en todos los proyectos',
+    text: 'Prepara los análisis de código, dependencias y contenedores, la política de seguridad y las reglas de protección de ramas. Si el proyecto ya está inicializado, actualiza el paquete generado.',
+    file: '.github/workflows/, .github/rulesets/ y .devsecops/engine/',
+    student: 'Revisar los cambios, publicar el proyecto en GitHub y seguir SECURITY_SETUP.md para activar las reglas y conectar la autorización al despliegue.'
+  },
+  panel: {
+    title: 'Panel de seguridad y asistencia de IA',
+    tool: 'Incluido por defecto; puedes desmarcarlo',
+    text: 'Añade un panel para consultar los informes de seguridad y solicitar explicaciones a la API de IA. Si el proyecto ya incluye el panel generado, se conserva y se actualiza aunque no marques la casilla.',
+    file: '.devsecops/dashboard/ y compose.security.yml',
+    student: 'Dejar la casilla marcada para añadir el panel. Para utilizarlo, configurar el repositorio, la rama y los tokens necesarios siguiendo la guía generada. La generación del ZIP no inicia el panel ni envía datos a la IA.'
+  },
   workflow: {
     title: 'Integración continua',
     tool: 'Herramienta: GitHub Actions',
-    text: 'El workflow se ejecuta al subir cambios, abrir una pull request o iniciarlo manualmente. Su función es coordinar los análisis sin que el alumno tenga que lanzar cada herramienta por separado.',
+    text: 'El workflow se ejecuta en GitHub al subir cambios, abrir una pull request, iniciarlo manualmente y cada lunes. Coordina los análisis sin que el alumno tenga que lanzar cada herramienta por separado.',
     file: '.github/workflows/devsecops.yml',
     student: 'Abrir la pestaña Actions, comprobar que todos los trabajos terminan y consultar el informe generado.'
   },
@@ -52,7 +66,7 @@ const helpContent = {
     tool: 'Componente: evaluación del pipeline',
     text: 'La política agrupa los hallazgos por severidad y toma una decisión común. Los hallazgos críticos, altos y de gravedad desconocida (UNKNOWN) requieren corrección o aceptación explícita del responsable antes de desplegar main. Los errores técnicos del análisis sí bloquean el proceso.',
     file: '.devsecops/engine/security/policy.json',
-    student: 'Una comprobación verde indica que el análisis ha terminado sin errores técnicos. Revisa también el estado de seguridad para saber si hay que aceptar los hallazgos antes de desplegar main.'
+    student: 'Conectar el autorizador al despliegue siguiendo SECURITY_SETUP.md. Una comprobación verde indica que el análisis ha terminado sin errores técnicos; revisa también el estado de seguridad antes de desplegar main.'
   },
   rulesets: {
     title: 'Protección de ramas en GitHub',
@@ -64,9 +78,9 @@ const helpContent = {
   dashboard: {
     title: 'Panel local de seguridad',
     tool: 'Componente: panel local',
-    text: 'El panel descarga el último artefacto del workflow y presenta el estado, las severidades y el detalle de los hallazgos. Está pensado para ejecutarse en local, no como servicio público.',
+    text: 'El panel permite buscar y descargar el último informe disponible del análisis y de la rama configurados. Presenta el estado, las severidades y el detalle de los hallazgos. Un commit nuevo no cambia el informe hasta que termina el análisis y se descarga su resultado.',
     file: '.devsecops/dashboard/ y compose.security.yml',
-    student: 'Configurar el repositorio y un token personal de GitHub con permisos de lectura antes de arrancar el panel.'
+    student: 'Configurar el repositorio, la rama y un token personal de GitHub con permisos de lectura. Arrancar el panel en local y pulsar «Buscar último informe».'
   },
   ai: {
     title: 'Remediación asistida por IA',
@@ -85,7 +99,7 @@ const helpContent = {
 
 };
 
-function showHelp(concept) {
+function showHelp(concept, reveal = false) {
   const help = helpContent[concept];
   if (!help) return;
   helpTitle.textContent = help.title;
@@ -93,23 +107,29 @@ function showHelp(concept) {
   helpText.textContent = help.text;
   helpFile.textContent = help.file;
   helpStudent.textContent = help.student;
+  document.querySelectorAll('[data-help]').forEach(control => {
+    control.classList.toggle('help-selected', control.dataset.help === concept);
+  });
+  // En pantallas estrechas la ayuda queda debajo: acercamos el texto al pulsarla.
+  if (reveal && window.matchMedia('(max-width: 850px)').matches) {
+    document.querySelector('#concept-help').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  }
 }
 
-document.querySelectorAll('.help-link').forEach(button => {
-  button.addEventListener('click', () => showHelp(button.dataset.help));
+document.querySelectorAll('[data-help]').forEach(control => {
+  control.addEventListener('click', () => showHelp(control.dataset.help, true));
 });
 
 dashboardCheckbox.addEventListener('change', () => {
   resetPlan();
   document.querySelector('.optional-selection').classList.toggle('selected', dashboardCheckbox.checked);
-  const concept = dashboardCheckbox.checked ? 'dashboard' : 'workflow';
-  showHelp(concept);
+  showHelp('panel', true);
 });
 
 // Marcar la opción no debe cerrar accidentalmente su apartado desplegable.
 dashboardCheckbox.addEventListener('click', event => event.stopPropagation());
 
-showHelp('workflow');
+showHelp('base');
 
 fileInput.addEventListener('change', resetPlan);
 analyzeButton.addEventListener('click', analyzeProject);

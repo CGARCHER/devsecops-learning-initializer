@@ -20,9 +20,9 @@
   <main class="page-width">
     <section class="introduction">
       <h2>¿Qué hace esta herramienta?</h2>
-      <p>Analiza la estructura de un proyecto, explica los controles que puede incorporar y genera una copia en formato ZIP. El proyecto que subas no se modifica.</p>
+      <p>Revisa la estructura de tu proyecto Spring Boot y genera una copia ZIP con los controles de seguridad preparados o actualizados. El proyecto original no se modifica. Los análisis de vulnerabilidades se ejecutan después en GitHub Actions.</p>
       <ol class="process">
-        <li><strong>Selecciona</strong> los controles.</li>
+        <li><strong>Configura</strong> el proyecto.</li>
         <li><strong>Carga y analiza</strong> el proyecto.</li>
         <li><strong>Revisa</strong> los archivos.</li>
         <li><strong>Descarga</strong> la copia.</li>
@@ -32,13 +32,13 @@
     <section class="configuration" id="uploadPanel">
       <div class="section-heading">
         <span class="section-number">1</span>
-        <div><h2>Selecciona los controles</h2><p>La configuración básica es obligatoria. El panel local puede añadirse de forma opcional.</p></div>
+        <div><h2>Configura el proyecto</h2><p>La configuración básica siempre se incluye. El panel está marcado por defecto y puedes desmarcarlo si no necesitas añadirlo.</p></div>
       </div>
 
       <div class="learning-layout">
         <div class="controls-column">
           <details class="control-group" open>
-            <summary class="selection-row required-selection">
+            <summary class="selection-row required-selection" data-help="base" aria-controls="concept-help">
               <input type="checkbox" checked disabled aria-label="Configuración DevSecOps básica incluida">
               <span><strong>Configuración DevSecOps básica</strong><small>Se incluye en todos los proyectos generados.</small></span>
             </summary>
@@ -73,13 +73,13 @@
           </details>
 
           <details class="control-group" open>
-            <summary class="selection-row optional-selection">
-              <input id="include-dashboard" type="checkbox" aria-label="Incluir panel local y remediación con IA">
-              <span><strong>Panel local y remediación con IA</strong><small>Opcional. Si el proyecto ya incluye el panel generado, se conserva y se actualiza.</small></span>
+            <summary class="selection-row optional-selection selected" data-help="panel" aria-controls="concept-help">
+              <input id="include-dashboard" type="checkbox" checked aria-label="Incluir panel de seguridad y asistencia de IA">
+              <span><strong>Incluir panel de seguridad y asistencia de IA</strong><small>Permite consultar los informes y solicitar ayuda para interpretar los hallazgos. Puedes desmarcarlo si solo necesitas añadir los análisis en GitHub.</small></span>
             </summary>
 
             <div class="optional-controls" id="optional-controls">
-              <p>Si marcas esta opción, se añadirán los siguientes componentes:</p>
+              <p>Si marcas esta opción, se añadirán los siguientes componentes. El panel no se inicia ni envía datos a la IA automáticamente. Si el proyecto ya incluye el panel generado, se conserva y se actualiza aunque desmarques la casilla:</p>
               <div class="control-table" aria-label="Componentes opcionales del panel">
                 <div class="control-header"><span>Componente</span><span>Finalidad</span><span></span></div>
                 <div class="control-row">
@@ -101,8 +101,8 @@
         </div>
 
         <aside class="help-panel" id="concept-help" aria-live="polite">
-          <p class="help-label">Ayuda del control seleccionado</p>
-          <h3 id="help-title">GitHub Actions</h3>
+          <p class="help-label">Explicación del apartado seleccionado</p>
+          <h3 id="help-title">Configuración DevSecOps básica</h3>
           <p class="help-tool" id="help-tool"></p>
           <p id="help-text"></p>
           <dl>
@@ -119,7 +119,7 @@
         </div>
         <label for="project"><strong>Archivo ZIP del proyecto Spring Boot</strong></label>
         <input id="project" type="file" accept=".zip">
-        <p>Tamaño máximo: 25 MB. El archivo temporal se elimina después de generar la copia.</p>
+        <p>Tamaño máximo: 25 MB. No incluyas contraseñas, tokens, archivos .env ni carpetas .git, target o build. La sesión caduca a los 30 minutos. La copia temporal se elimina al generar el ZIP o al limpiar las sesiones caducadas.</p>
         <button id="analyze" disabled>Analizar proyecto</button>
         <p class="error" id="error" role="alert"></p>
       </div>
@@ -152,7 +152,7 @@
       <section class="result-section generate">
         <div class="section-heading">
           <span class="section-number">4</span>
-          <div><h2>Descarga la copia</h2><p>Contiene el proyecto original y los archivos revisados en el paso anterior.</p></div>
+          <div><h2>Descarga la copia</h2><p>Incluye el proyecto con las incorporaciones, sustituciones y eliminaciones indicadas en el paso anterior.</p></div>
         </div>
         <button id="generate" disabled>Descargar proyecto preparado</button>
         <p>Extrae el ZIP en una carpeta vacía. Copiarlo encima del proyecto anterior no elimina los archivos retirados. Conserva aparte tu carpeta .git y tu configuración local.</p>

@@ -63,6 +63,8 @@ main { padding-top: 28px; padding-bottom: 55px; }
 .control-row > span:nth-child(2) { color: var(--muted); font-size: 14px; }
 .help-action { border: 0; padding: 2px 0; background: transparent; color: var(--green); font: inherit; text-decoration: underline; font-size: 13px; text-align: right; cursor: pointer; }
 .help-action:hover, .help-action:focus { color: var(--dark-green); text-decoration-thickness: 2px; }
+.selection-row.help-selected { outline: 2px solid var(--green); outline-offset: 2px; }
+.help-action.help-selected { font-weight: bold; text-decoration-thickness: 2px; }
 
 .help-panel { position: sticky; top: 18px; border: 1px solid #b9cec7; border-top: 5px solid var(--green); border-radius: 6px; padding: 18px; background: #f8fbfa; }
 .help-label { margin: 0 0 3px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
@@ -73,6 +75,9 @@ main { padding-top: 28px; padding-bottom: 55px; }
 .help-panel dt { margin-top: 10px; font-size: 13px; font-weight: bold; }
 .help-panel dd { margin: 3px 0 0; color: var(--muted); }
 .help-panel code { color: var(--dark-green); overflow-wrap: anywhere; }
+@media (min-width: 851px) {
+  .help-panel { max-height: calc(100dvh - 36px); overflow-y: auto; }
+}
 
 .optional-selection { background: #f7f8f8; border-color: var(--line); cursor: pointer; }
 .optional-selection.selected { background: var(--soft-green); border-color: #b9cec7; }
